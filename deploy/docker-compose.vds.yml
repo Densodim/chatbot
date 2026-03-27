@@ -1,0 +1,12 @@
+services:
+  chatbot:
+    image: ${SERVER_IMAGE}
+    container_name: chatbot
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
