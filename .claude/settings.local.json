@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun add:*)",
+      "Bash(npx biome:*)",
+      "Bash(./node_modules/.bin/biome check:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(./node_modules/.bin/tsc --noEmit)"
+    ]
+  }
+}
