@@ -6,7 +6,8 @@
       "Bash(./node_modules/.bin/biome check:*)",
       "Bash(echo \"exit: $?\")",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(npx @biomejs/biome check --write src/)"
+      "Bash(npx @biomejs/biome check --write src/)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

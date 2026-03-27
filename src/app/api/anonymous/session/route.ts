@@ -7,6 +7,31 @@ const ANON_SESSION_COOKIE = 'anon_session_id'
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 const ANON_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
 
+const ANON_MESSAGE_LIMIT = 3
+
+/** GET /api/anonymous/session — remaining free messages for this session */
+export async function GET(): Promise<NextResponse> {
+  const jar = await cookies()
+  const fingerprint = jar.get(ANON_SESSION_COOKIE)?.value
+
+  if (!fingerprint) {
+    return NextResponse.json({
+      data: { remaining: ANON_MESSAGE_LIMIT, messageCount: 0 },
+    })
+  }
+
+  const { data } = await supabaseAdmin
+    .from('anonymous_sessions')
+    .select('message_count')
+    .eq('fingerprint', fingerprint)
+    .single()
+
+  const messageCount = Number(data?.message_count ?? 0)
+  const remaining = Math.max(0, ANON_MESSAGE_LIMIT - messageCount)
+
+  return NextResponse.json({ data: { remaining, messageCount } })
+}
+
 export async function POST(): Promise<NextResponse> {
   const jar = await cookies()
   const existingFingerprint = jar.get(ANON_SESSION_COOKIE)?.value
