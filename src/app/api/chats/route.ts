@@ -35,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json({ data: data ?? [] })
 }
 
-/** POST /api/chats — create a new chat for the authenticated user */
+/** POST /api/chats — create a new chat for the authenticated user   */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
   const body = (await request.json()) as { title?: string; model?: string }
