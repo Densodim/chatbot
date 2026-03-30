@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { removeAttachmentStorageObjects } from '@/lib/attachment-storage'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { ChatUpdate } from '@/types/db'
 
@@ -101,6 +102,26 @@ export async function DELETE(
 
   if (!chat) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  const { data: attachments, error: attachmentsError } = await supabaseAdmin
+    .from('attachments')
+    .select('storage_path')
+    .eq('chat_id', id)
+
+  if (attachmentsError) {
+    return NextResponse.json(
+      { error: attachmentsError.message },
+      { status: 500 },
+    )
+  }
+
+  const storageError = await removeAttachmentStorageObjects(
+    (attachments ?? []).map(attachment => String(attachment.storage_path)),
+  )
+
+  if (storageError) {
+    return NextResponse.json({ error: storageError }, { status: 500 })
   }
 
   const { error } = await supabaseAdmin.from('chats').delete().eq('id', id)

@@ -1,6 +1,6 @@
 'use client'
 
-import { startTransition, useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   FileIcon,
@@ -10,77 +10,48 @@ import {
 } from '@/components/icons'
 import type { BubbleAttachment, SendMessageInput } from '@/types/chat'
 
-type UploadedAttachment = BubbleAttachment & {
-  isUploading: boolean
-}
-
-type UploadResponse = {
-  data: {
-    id: string
-    file_name?: string
-    mime_type?: string
-    preview_url?: string | null
-    fileName?: string
-    mimeType?: string
-    previewUrl?: string | null
-  }
-}
-
 type Props = {
   chatId: string | null
+  attachments: BubbleAttachment[]
+  isUploading: boolean
   isSending: boolean
   isDisabled: boolean
   remainingFreeMessages: number | null
+  isDragActive?: boolean
+  onUploadFiles: (files: FileList | File[]) => Promise<unknown>
+  onRemoveAttachment: (attachmentId: string) => Promise<void>
+  onResetAttachments: () => void
+  onRestoreAttachments: (attachments: BubbleAttachment[]) => void
   onSend: (
     input: SendMessageInput,
     attachments: BubbleAttachment[],
   ) => Promise<void>
 }
 
-function isImageAttachment(attachment: UploadedAttachment): boolean {
+function isImageAttachment(attachment: BubbleAttachment): boolean {
   return attachment.mimeType.startsWith('image/')
 }
 
-async function uploadAttachment(
-  file: File,
-  chatId: string,
-): Promise<UploadedAttachment> {
-  const formData = new FormData()
-  formData.set('file', file)
-  formData.set('chatId', chatId)
-
-  const response = await fetch('/api/attachments/upload', {
-    method: 'POST',
-    body: formData,
-  })
-
-  if (!response.ok) {
-    const json = (await response.json().catch(() => null)) as {
-      error?: string
-    } | null
-    throw new Error(json?.error ?? 'Failed to upload attachment')
+function renderAttachmentLead(attachment: BubbleAttachment) {
+  if (!isImageAttachment(attachment)) {
+    return (
+      <FileIcon className='h-4 w-4 shrink-0 text-[color:var(--color-muted-foreground)]' />
+    )
   }
 
-  const json = (await response.json()) as UploadResponse
-
-  return {
-    id: json.data.id,
-    fileName: json.data.fileName ?? json.data.file_name ?? file.name,
-    mimeType: json.data.mimeType ?? json.data.mime_type ?? file.type,
-    previewUrl: json.data.previewUrl ?? json.data.preview_url ?? null,
-    isUploading: false,
+  if (attachment.previewUrl) {
+    return (
+      <img
+        src={attachment.previewUrl}
+        alt={attachment.fileName}
+        className='h-10 w-10 shrink-0 rounded-xl object-cover'
+      />
+    )
   }
-}
 
-async function removeAttachment(id: string): Promise<void> {
-  const response = await fetch(`/api/attachments/${id}`, { method: 'DELETE' })
-
-  if (!response.ok) {
-    const json = (await response.json().catch(() => null)) as {
-      error?: string
-    } | null
-    throw new Error(json?.error ?? 'Failed to remove attachment')
-  }
+  return (
+    <ImageIcon className='h-4 w-4 shrink-0 text-[color:var(--color-muted-foreground)]' />
+  )
 }
 
 function resizeTextarea(textarea: HTMLTextAreaElement | null) {
@@ -95,17 +66,22 @@ function resizeTextarea(textarea: HTMLTextAreaElement | null) {
 
 export function InputBar({
   chatId,
+  attachments,
+  isUploading,
   isSending,
   isDisabled,
   remainingFreeMessages,
+  isDragActive = false,
+  onUploadFiles,
+  onRemoveAttachment,
+  onResetAttachments,
+  onRestoreAttachments,
   onSend,
 }: Props) {
   const fileInputId = useId()
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [value, setValue] = useState('')
-  const [attachments, setAttachments] = useState<UploadedAttachment[]>([])
-  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     if (value.length < 0) {
@@ -116,32 +92,13 @@ export function InputBar({
   }, [value])
 
   const handleFiles = async (fileList: FileList | File[]) => {
-    if (!chatId) {
-      toast.error('Create a chat before attaching files.')
-      return
-    }
-
-    const files = Array.from(fileList)
-    if (files.length === 0) {
-      return
-    }
-
-    setIsUploading(true)
-
     try {
-      const uploaded = await Promise.all(
-        files.map(file => uploadAttachment(file, chatId)),
-      )
-
-      startTransition(() => {
-        setAttachments(previous => [...previous, ...uploaded])
-      })
+      await onUploadFiles(fileList)
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Failed to upload file.',
       )
     } finally {
-      setIsUploading(false)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -165,28 +122,9 @@ export function InputBar({
   }
 
   const handleRemoveAttachment = async (attachmentId: string) => {
-    const existing = attachments.find(
-      attachment => attachment.id === attachmentId,
-    )
-
-    startTransition(() => {
-      setAttachments(previous =>
-        previous.filter(attachment => attachment.id !== attachmentId),
-      )
-    })
-
-    if (!existing || existing.isUploading) {
-      return
-    }
-
     try {
-      await removeAttachment(attachmentId)
+      await onRemoveAttachment(attachmentId)
     } catch (error) {
-      startTransition(() => {
-        setAttachments(previous =>
-          existing ? [...previous, existing] : previous,
-        )
-      })
       toast.error(
         error instanceof Error ? error.message : 'Failed to remove attachment.',
       )
@@ -195,9 +133,7 @@ export function InputBar({
 
   const handleSubmit = async () => {
     const content = value.trim()
-    const readyAttachments = attachments.filter(
-      attachment => !attachment.isUploading,
-    )
+    const readyAttachments = attachments
 
     if (
       (!content && readyAttachments.length === 0) ||
@@ -211,7 +147,7 @@ export function InputBar({
     const previousAttachments = attachments
 
     setValue('')
-    setAttachments([])
+    onResetAttachments()
 
     try {
       await onSend(
@@ -223,7 +159,7 @@ export function InputBar({
       )
     } catch (error) {
       setValue(previousValue)
-      setAttachments(previousAttachments)
+      onRestoreAttachments(previousAttachments)
       toast.error(
         error instanceof Error ? error.message : 'Failed to send message.',
       )
@@ -255,13 +191,9 @@ export function InputBar({
             {attachments.map(attachment => (
               <div
                 key={attachment.id}
-                className='inline-flex max-w-full items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-white px-3 py-2 text-sm shadow-sm'
+                className='inline-flex max-w-full items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-white px-2.5 py-2 text-sm shadow-sm'
               >
-                {isImageAttachment(attachment) ? (
-                  <ImageIcon className='h-4 w-4 shrink-0 text-[color:var(--color-muted-foreground)]' />
-                ) : (
-                  <FileIcon className='h-4 w-4 shrink-0 text-[color:var(--color-muted-foreground)]' />
-                )}
+                {renderAttachmentLead(attachment)}
                 <span className='truncate'>{attachment.fileName}</span>
                 <button
                   type='button'
@@ -278,7 +210,13 @@ export function InputBar({
           </div>
         ) : null}
 
-        <div className='rounded-[28px] border border-[color:var(--color-border)] bg-white p-3 shadow-lg shadow-black/5'>
+        <div
+          className={`rounded-[28px] border bg-white p-3 shadow-lg shadow-black/5 transition ${
+            isDragActive
+              ? 'border-[color:var(--color-accent)] ring-4 ring-[color:var(--color-accent)]/15'
+              : 'border-[color:var(--color-border)]'
+          }`}
+        >
           <div className='flex items-end gap-3'>
             <input
               ref={fileInputRef}

@@ -1,10 +1,9 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { removeAttachmentStorageObjects } from '@/lib/attachment-storage'
 import { supabaseAdmin } from '@/lib/supabase'
 
 type RouteContext = { params: Promise<{ id: string }> }
-
-const STORAGE_BUCKET = 'attachments'
 
 /**
  * DELETE /api/attachments/:id
@@ -43,10 +42,13 @@ export async function DELETE(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  // Remove from storage first, then delete the DB record.
-  await supabaseAdmin.storage
-    .from(STORAGE_BUCKET)
-    .remove([String(attachment.storage_path)])
+  const storageError = await removeAttachmentStorageObjects([
+    String(attachment.storage_path),
+  ])
+
+  if (storageError) {
+    return NextResponse.json({ error: storageError }, { status: 500 })
+  }
 
   const { error } = await supabaseAdmin
     .from('attachments')
