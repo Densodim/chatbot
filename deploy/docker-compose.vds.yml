@@ -6,8 +6,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:3000"]
       interval: 15s

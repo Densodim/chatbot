@@ -17,6 +17,9 @@ function getOpenAIClient() {
 
 function getGroqClient() {
   const apiKey = process.env.GROQ_API_KEY
+  console.log('GROQ_API_KEY exists:', !!apiKey)
+  console.log('GROQ_API_KEY length:', apiKey?.length || 0)
+  
   if (!apiKey) {
     throw new Error('Missing required environment variable: GROQ_API_KEY')
   }
