@@ -5,11 +5,6 @@ function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
-  console.log('NEXT_PUBLIC_SUPABASE_URL exists:', !!supabaseUrl)
-  console.log('NEXT_PUBLIC_SUPABASE_URL length:', supabaseUrl?.length || 0)
-  console.log('SUPABASE_SERVICE_ROLE_KEY exists:', !!serviceRoleKey)
-  console.log('SUPABASE_SERVICE_ROLE_KEY length:', serviceRoleKey?.length || 0)
-  
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error(
       'Missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY',
