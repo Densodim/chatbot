@@ -47,7 +47,7 @@ const STREAM_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
 } as const
 const SIGNED_URL_TTL_SECONDS = 60 * 60
-const SUPPORTED_MODELS = new Set(['gpt-4o', 'gpt-4o-mini'])
+const SUPPORTED_MODELS = new Set(['gpt-4o', 'gpt-3.5-turbo', 'llama-3.1-8b-instant', 'llama-3.1-70b-versatile'])
 
 function normalizeRequestedAttachmentIds(ids: string[] | undefined): string[] {
   if (!ids) {
@@ -62,7 +62,12 @@ function resolveChatModel(model: string, hasImages: boolean): string {
     return 'gpt-4o'
   }
 
-  return SUPPORTED_MODELS.has(model) ? model : 'gpt-4o-mini'
+  // Map Groq models to their equivalents
+  if (model === 'llama-3.1-8b-instant' || model === 'llama-3.1-70b-versatile') {
+    return model
+  }
+
+  return SUPPORTED_MODELS.has(model) ? model : 'llama-3.1-8b-instant'
 }
 
 async function getOwnedChat(

@@ -1,7 +1,9 @@
 import 'server-only'
 import OpenAI from 'openai'
+import Groq from 'groq-sdk'
 
 let openai: OpenAI | undefined
+let groq: Groq | undefined
 
 function getOpenAIClient() {
   const apiKey = process.env.OPENAI_API_KEY
@@ -11,6 +13,16 @@ function getOpenAIClient() {
 
   openai ??= new OpenAI({ apiKey })
   return openai
+}
+
+function getGroqClient() {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    throw new Error('Missing required environment variable: GROQ_API_KEY')
+  }
+
+  groq ??= new Groq({ apiKey })
+  return groq
 }
 
 // Cached at module level — TextEncoder is reused across calls.
@@ -42,24 +54,49 @@ export function streamChatCompletion(
 ): ReadableStream<Uint8Array> {
   return new ReadableStream<Uint8Array>({
     async start(controller) {
-      const openai = getOpenAIClient()
-      const completion = await openai.chat.completions.create({
-        model,
-        messages:
-          messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-        stream: true,
-      })
-      let fullContent = ''
-      for await (const chunk of completion) {
-        const text = chunk.choices[0]?.delta?.content ?? ''
-        if (text) {
-          fullContent += text
-          callbacks.onChunk?.(text)
-          controller.enqueue(TEXT_ENCODER.encode(text))
+      try {
+        // Try Groq first (free and fast)
+        const groq = getGroqClient()
+        const groqModel = model.includes('gpt-4') ? 'llama-3.1-70b-versatile' : 'llama-3.1-8b-instant'
+        
+        const completion = await groq.chat.completions.create({
+          model: groqModel,
+          messages: messages as any,
+          stream: true,
+        })
+        
+        let fullContent = ''
+        for await (const chunk of completion) {
+          const text = chunk.choices[0]?.delta?.content ?? ''
+          if (text) {
+            fullContent += text
+            callbacks.onChunk?.(text)
+            controller.enqueue(TEXT_ENCODER.encode(text))
+          }
         }
+        controller.close()
+        await callbacks.onComplete?.(fullContent)
+      } catch (groqError) {
+        console.warn('Groq API failed, trying OpenAI:', groqError)
+        // Fallback to OpenAI
+        const openai = getOpenAIClient()
+        const completion = await openai.chat.completions.create({
+          model,
+          messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+          stream: true,
+        })
+        let fullContent = ''
+        for await (const chunk of completion) {
+          const text = chunk.choices[0]?.delta?.content ?? ''
+          if (text) {
+            fullContent += text
+            callbacks.onChunk?.(text)
+            controller.enqueue(TEXT_ENCODER.encode(text))
+          }
+        }
+        controller.close()
+        await callbacks.onComplete?.(fullContent)
       }
-      controller.close()
-      await callbacks.onComplete?.(fullContent)
     },
   })
 }

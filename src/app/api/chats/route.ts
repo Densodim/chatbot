@@ -45,7 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     user_id: userId,
     anonymous_session_fingerprint: anonymousSession?.fingerprint ?? null,
     title: body.title ?? 'New Chat',
-    model: body.model ?? 'gpt-4o-mini',
+    model: body.model ?? 'llama-3.1-8b-instant',
   }
 
   const { data, error } = await supabaseAdmin
