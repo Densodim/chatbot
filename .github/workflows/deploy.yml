@@ -64,12 +64,10 @@ jobs:
             cd "${{ secrets.VDS_APP_DIR }}"
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
             export SERVER_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-            # Create/update .env file with runtime secrets
-            cat > .env << EOL
-            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-            SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-            EOL
-            docker compose --env-file .env -f docker-compose.yml pull
-            docker compose --env-file .env -f docker-compose.yml up -d
+            export GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}"
+            export SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+            export NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}"
+            docker compose -f docker-compose.yml pull
+            docker compose -f docker-compose.yml up -d
             docker image prune -f
           EOF
