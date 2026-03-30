@@ -1,13 +1,17 @@
 import 'server-only'
 import OpenAI from 'openai'
 
-const apiKey = process.env.OPENAI_API_KEY
+let openai: OpenAI | undefined
 
-if (!apiKey) {
-  throw new Error('Missing required environment variable: OPENAI_API_KEY')
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('Missing required environment variable: OPENAI_API_KEY')
+  }
+
+  openai ??= new OpenAI({ apiKey })
+  return openai
 }
-
-const openai = new OpenAI({ apiKey })
 
 // Cached at module level — TextEncoder is reused across calls.
 const TEXT_ENCODER = new TextEncoder()
@@ -29,6 +33,7 @@ export function streamChatCompletion(
 ): ReadableStream<Uint8Array> {
   return new ReadableStream<Uint8Array>({
     async start(controller) {
+      const openai = getOpenAIClient()
       const completion = await openai.chat.completions.create({
         model,
         messages,
