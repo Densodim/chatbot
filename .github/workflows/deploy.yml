@@ -58,11 +58,17 @@ jobs:
         shell: bash
         run: |
           ssh -p "${{ secrets.VDS_PORT }}" "${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }}" << EOF
-          set -e
-          cd "${{ secrets.VDS_APP_DIR }}"
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-          export SERVER_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          docker compose --env-file .env -f docker-compose.yml pull
-          docker compose --env-file .env -f docker-compose.yml up -d
-          docker image prune -f
+            set -e
+            cd "${{ secrets.VDS_APP_DIR }}"
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            export SERVER_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+            # Create/update .env file with secrets
+            cat > .env << EOL
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+            EOL
+            docker compose --env-file .env -f docker-compose.yml pull
+            docker compose --env-file .env -f docker-compose.yml up -d
+            docker image prune -f
           EOF
