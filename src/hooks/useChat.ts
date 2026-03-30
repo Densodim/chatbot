@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Dispatch, SetStateAction } from 'react'
 import { startTransition, useCallback, useState } from 'react'
+import { publishRealtimeEvent } from '@/lib/supabase-realtime'
 import type { ChatMessage, SendMessageInput } from '@/types/chat'
 
 type MessagesResponse = {
@@ -71,7 +72,7 @@ async function readStreamingResponse(
   await readNextChunk()
 }
 
-export function useChat(chatId: string | null) {
+export function useChat(chatId: string | null, userId: string | null = null) {
   const queryClient = useQueryClient()
   const [streamingMessage, setStreamingMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -108,9 +109,19 @@ export function useChat(chatId: string | null) {
         await queryClient.invalidateQueries({
           queryKey: ['chat', chatId, 'messages'],
         })
+        await queryClient.invalidateQueries({
+          queryKey: ['chats'],
+        })
+        if (userId) {
+          publishRealtimeEvent({
+            type: 'message-created',
+            userId,
+            chatId,
+          })
+        }
       }
     },
-    [chatId, queryClient],
+    [chatId, queryClient, userId],
   )
 
   return {

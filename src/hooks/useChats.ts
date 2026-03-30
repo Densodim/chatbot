@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
+import { publishRealtimeEvent } from '@/lib/supabase-realtime'
 import type { Chat } from '@/types/db'
 
 type ChatsResponse = {
@@ -14,7 +15,7 @@ type ApiErrorResponse = {
 
 export type ChatSummary = Pick<
   Chat,
-  'id' | 'title' | 'model' | 'created_at' | 'updated_at'
+  'id' | 'user_id' | 'title' | 'model' | 'created_at' | 'updated_at'
 >
 
 const CHATS_QUERY_KEY = ['chats'] as const
@@ -75,6 +76,7 @@ export function useChats(enabled = true) {
     queryFn: fetchChats,
     enabled,
   })
+  const chats = chatsQuery.data ?? []
 
   const createChat = useCallback(async (): Promise<ChatSummary> => {
     setIsCreating(true)
@@ -82,6 +84,13 @@ export function useChats(enabled = true) {
     try {
       const chat = await createChatRequest()
       await queryClient.invalidateQueries({ queryKey: CHATS_QUERY_KEY })
+      if (chat.user_id) {
+        publishRealtimeEvent({
+          type: 'chat-created',
+          userId: chat.user_id,
+          chatId: chat.id,
+        })
+      }
       return chat
     } finally {
       setIsCreating(false)
@@ -90,20 +99,28 @@ export function useChats(enabled = true) {
 
   const deleteChat = useCallback(
     async (chatId: string): Promise<void> => {
+      const targetChat = chats.find(chat => chat.id === chatId)
       setDeletingChatId(chatId)
 
       try {
         await deleteChatRequest(chatId)
         await queryClient.invalidateQueries({ queryKey: CHATS_QUERY_KEY })
+        if (targetChat?.user_id) {
+          publishRealtimeEvent({
+            type: 'chat-deleted',
+            userId: targetChat.user_id,
+            chatId,
+          })
+        }
       } finally {
         setDeletingChatId(null)
       }
     },
-    [queryClient],
+    [chats, queryClient],
   )
 
   return {
-    chats: chatsQuery.data ?? [],
+    chats,
     isLoading: chatsQuery.isLoading,
     isFetching: chatsQuery.isFetching,
     isCreating,

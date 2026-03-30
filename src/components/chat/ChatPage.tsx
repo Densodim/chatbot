@@ -7,6 +7,7 @@ import { MessageList } from '@/components/chat/MessageList'
 import { useAnonymousSession } from '@/hooks/useAnonymousSession'
 import { useAuth } from '@/hooks/useAuth'
 import { useChat } from '@/hooks/useChat'
+import { useMessagesRealtime } from '@/hooks/useMessagesRealtime'
 import type { BubbleAttachment, SendMessageInput } from '@/types/chat'
 
 type Props = {
@@ -21,8 +22,9 @@ export function ChatPage({ chatId }: Props) {
     isSending,
     streamingMessage,
     sendMessage,
-  } = useChat(user ? chatId : null)
+  } = useChat(user ? chatId : null, user?.id ?? null)
   const { remainingMessages } = useAnonymousSession(user === null)
+  useMessagesRealtime(user?.id ?? null, chatId)
   const [optimisticMessage, setOptimisticMessage] = useState<{
     content: string
     attachments: BubbleAttachment[]

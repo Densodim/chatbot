@@ -1,17 +1,38 @@
-import { createBrowserClient } from '@supabase/ssr'
+'use client'
 
-/**
- * Supabase browser client for Realtime subscriptions.
- * Browser-only — call from Client Components.
- * Uses ANON/PUBLISHABLE key (safe to expose).
- */
-export const createRealtimeClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      'Missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
-    )
+export type RealtimeEvent =
+  | {
+      type: 'chat-created' | 'chat-deleted'
+      userId: string
+      chatId: string
+    }
+  | {
+      type: 'message-created'
+      userId: string
+      chatId: string
+    }
+
+const CHANNEL_NAME = 'chatbot:cross-tab'
+
+export function supportsCrossTabRealtime(): boolean {
+  return typeof window !== 'undefined' && 'BroadcastChannel' in window
+}
+
+export function createRealtimeClient(): BroadcastChannel | null {
+  if (!supportsCrossTabRealtime()) {
+    return null
   }
-  return createBrowserClient(supabaseUrl, supabaseKey)
+
+  return new BroadcastChannel(CHANNEL_NAME)
+}
+
+export function publishRealtimeEvent(event: RealtimeEvent): void {
+  const channel = createRealtimeClient()
+
+  if (!channel) {
+    return
+  }
+
+  channel.postMessage(event)
+  channel.close()
 }

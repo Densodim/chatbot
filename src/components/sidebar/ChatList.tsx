@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { ChatItem } from '@/components/sidebar/ChatItem'
 import { useAuth } from '@/hooks/useAuth'
 import { useChats } from '@/hooks/useChats'
+import { useChatsRealtime } from '@/hooks/useChatsRealtime'
 
 function SidebarSkeleton() {
   const skeletonIds = ['chat-a', 'chat-b', 'chat-c', 'chat-d']
@@ -23,6 +24,7 @@ function SidebarSkeleton() {
 export function ChatList() {
   const pathname = usePathname()
   const { user } = useAuth()
+  useChatsRealtime(user?.id ?? null)
   const { chats, deleteChat, deletingChatId, isLoading } = useChats(
     user !== null,
   )
