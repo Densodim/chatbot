@@ -8,7 +8,7 @@ const STORAGE_BUCKET = 'attachments'
 
 /**
  * DELETE /api/attachments/:id
- * Verifies ownership via attachment → message → chat → user_id chain,
+ * Verifies ownership via attachment.chat_id → chat.user_id,
  * then removes the file from storage and deletes the DB record.
  */
 export async function DELETE(
@@ -24,7 +24,7 @@ export async function DELETE(
 
   const { data: attachment } = await supabaseAdmin
     .from('attachments')
-    .select('id, storage_path, message_id')
+    .select('id, storage_path, chat_id')
     .eq('id', id)
     .single()
 
@@ -32,21 +32,10 @@ export async function DELETE(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  // Resolve ownership: attachment → message → chat → user_id
-  const { data: message } = await supabaseAdmin
-    .from('messages')
-    .select('chat_id')
-    .eq('id', attachment.message_id)
-    .single()
-
-  if (!message) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  }
-
   const { data: chat } = await supabaseAdmin
     .from('chats')
     .select('id')
-    .eq('id', message.chat_id)
+    .eq('id', attachment.chat_id)
     .eq('user_id', userId)
     .single()
 

@@ -51,11 +51,13 @@ create table public.messages (
 -- ------------------------------------------------------------
 create table public.attachments (
   id           uuid        primary key default gen_random_uuid(),
-  message_id   uuid        not null references public.messages (id) on delete cascade,
+  chat_id      uuid        not null references public.chats (id) on delete cascade,
+  message_id   uuid        references public.messages (id) on delete cascade,
   storage_path text        not null, -- Supabase Storage path
   file_name    text        not null,
   mime_type    text        not null,
   size_bytes   int         not null,
+  extracted_text text,
   created_at   timestamptz not null default now()
 );
 
@@ -74,6 +76,10 @@ create index idx_messages_chat_created
 -- attachments by parent message
 create index idx_attachments_message
   on public.attachments (message_id);
+
+-- pending / chat-scoped attachments
+create index idx_attachments_chat_created
+  on public.attachments (chat_id, created_at asc);
 
 -- ------------------------------------------------------------
 -- 7. Trigger: bump chats.updated_at on every new message

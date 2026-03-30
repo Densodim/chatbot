@@ -45,11 +45,13 @@ export type Message = {
 
 export type Attachment = {
   id: string
-  message_id: string
+  chat_id: string
+  message_id: string | null
   storage_path: string
   file_name: string
   mime_type: string
   size_bytes: number
+  extracted_text: string | null
   created_at: string
 }
 
@@ -81,11 +83,13 @@ export type MessageInsert = {
 }
 
 export type AttachmentInsert = {
-  message_id: string
+  chat_id: string
+  message_id?: string | null
   storage_path: string
   file_name: string
   mime_type: string
   size_bytes: number
+  extracted_text?: string | null
 }
 
 // ------------------------------------------------------------------
@@ -100,4 +104,9 @@ export type ChatUpdate = {
 
 export type MessageUpdate = {
   content?: string
+}
+
+export type AttachmentUpdate = {
+  message_id?: string | null
+  extracted_text?: string | null
 }

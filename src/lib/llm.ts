@@ -16,9 +16,18 @@ function getOpenAIClient() {
 // Cached at module level — TextEncoder is reused across calls.
 const TEXT_ENCODER = new TextEncoder()
 
+export type LlmContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } }
+
 export type LlmMessage = {
   role: 'user' | 'assistant' | 'system'
-  content: string
+  content: string | LlmContentPart[]
+}
+
+type StreamCallbacks = {
+  onChunk?: (chunk: string) => void
+  onComplete?: (fullContent: string) => Promise<void> | void
 }
 
 /**
@@ -29,14 +38,15 @@ export type LlmMessage = {
 export function streamChatCompletion(
   messages: LlmMessage[],
   model: string,
-  onComplete: (fullContent: string) => Promise<void>,
+  callbacks: StreamCallbacks = {},
 ): ReadableStream<Uint8Array> {
   return new ReadableStream<Uint8Array>({
     async start(controller) {
       const openai = getOpenAIClient()
       const completion = await openai.chat.completions.create({
         model,
-        messages,
+        messages:
+          messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
         stream: true,
       })
       let fullContent = ''
@@ -44,11 +54,12 @@ export function streamChatCompletion(
         const text = chunk.choices[0]?.delta?.content ?? ''
         if (text) {
           fullContent += text
+          callbacks.onChunk?.(text)
           controller.enqueue(TEXT_ENCODER.encode(text))
         }
       }
       controller.close()
-      await onComplete(fullContent)
+      await callbacks.onComplete?.(fullContent)
     },
   })
 }

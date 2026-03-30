@@ -1,6 +1,6 @@
 'use client'
 
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useId, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
 
 export function LoginModal({ onClose, onSwitchToSignup }: Props) {
   const { login } = useAuth()
+  const titleId = useId()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -34,11 +35,11 @@ export function LoginModal({ onClose, onSwitchToSignup }: Props) {
       className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'
       role='dialog'
       aria-modal='true'
-      aria-labelledby='login-title'
+      aria-labelledby={titleId}
     >
       <div className='w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-neutral-900'>
         <div className='mb-4 flex items-center justify-between'>
-          <h2 id='login-title' className='text-lg font-semibold'>
+          <h2 id={titleId} className='text-lg font-semibold'>
             Sign in
           </h2>
           <button
