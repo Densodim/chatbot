@@ -9,6 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/chatbot
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
@@ -63,6 +64,7 @@ jobs:
           ssh -p "${{ secrets.VDS_PORT }}" "${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }}" << EOF
             set -e
             cd "${{ secrets.VDS_APP_DIR }}"
+            rm -f .env
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
             export SERVER_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
             export GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}"
