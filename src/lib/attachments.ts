@@ -1,5 +1,5 @@
 import 'server-only'
-import { PDFParse } from 'pdf-parse'
+import { extractText } from 'unpdf'
 
 const IMAGE_MIME_PREFIX = 'image/'
 const DOCUMENT_MIME_TYPES = new Set([
@@ -40,16 +40,9 @@ export function truncateDocumentContext(
 }
 
 async function extractPdfText(file: File): Promise<string> {
-  const parser = new PDFParse({
-    data: new Uint8Array(await file.arrayBuffer()),
-  })
-
-  try {
-    const result = await parser.getText()
-    return normalizeExtractedText(result.text)
-  } finally {
-    await parser.destroy()
-  }
+  const buffer = new Uint8Array(await file.arrayBuffer())
+  const { text } = await extractText(buffer, { mergePages: true })
+  return normalizeExtractedText(text)
 }
 
 export async function extractAttachmentText(
