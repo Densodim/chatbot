@@ -47,7 +47,7 @@ function extractUserId(token: string): string | null {
   return payload.sub
 }
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
   const anonSessionId = request.cookies.get(ANON_SESSION_COOKIE)?.value
   const userId = accessToken ? extractUserId(accessToken) : null
