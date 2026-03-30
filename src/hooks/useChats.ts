@@ -15,7 +15,13 @@ type ApiErrorResponse = {
 
 export type ChatSummary = Pick<
   Chat,
-  'id' | 'user_id' | 'title' | 'model' | 'created_at' | 'updated_at'
+  | 'id'
+  | 'user_id'
+  | 'anonymous_session_fingerprint'
+  | 'title'
+  | 'model'
+  | 'created_at'
+  | 'updated_at'
 >
 
 const CHATS_QUERY_KEY = ['chats'] as const

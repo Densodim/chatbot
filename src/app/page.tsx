@@ -11,7 +11,7 @@ export default function Home() {
   const { user, isLoading } = useAuth()
   const [modal, setModal] = useState<'login' | 'signup' | null>(null)
   let sessionMessage =
-    'Anonymous visitors can still see the remaining free-message banner once step 08 is added.'
+    'Guest mode is ready with three free messages before signup is required.'
 
   if (isLoading) {
     sessionMessage = 'Checking session...'
@@ -52,10 +52,16 @@ export default function Home() {
                 </Link>
               ) : (
                 <>
+                  <Link
+                    href='/chats'
+                    className='rounded-2xl bg-[color:var(--color-accent)] px-5 py-3 font-medium text-[color:var(--color-accent-foreground)] shadow-sm transition hover:bg-[color:var(--color-accent-strong)]'
+                  >
+                    Continue as guest
+                  </Link>
                   <button
                     type='button'
                     onClick={() => setModal('login')}
-                    className='rounded-2xl bg-[color:var(--color-accent)] px-5 py-3 font-medium text-[color:var(--color-accent-foreground)] shadow-sm transition hover:bg-[color:var(--color-accent-strong)]'
+                    className='rounded-2xl border border-[color:var(--color-border)] px-5 py-3 font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-panel)]'
                   >
                     Sign in
                   </button>

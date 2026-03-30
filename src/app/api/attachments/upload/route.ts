@@ -19,7 +19,8 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -54,16 +55,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const { data: chat } = await supabaseAdmin
     .from('chats')
-    .select('id')
+    .select('id, user_id, anonymous_session_fingerprint')
     .eq('id', chatId)
-    .eq('user_id', userId)
     .single()
 
-  if (!chat) {
+  const hasAccess =
+    userId !== null
+      ? chat?.user_id === userId
+      : chat?.user_id === null &&
+        chat?.anonymous_session_fingerprint === anonSessionId
+
+  if (!chat || !hasAccess) {
     return NextResponse.json({ error: 'Chat not found' }, { status: 404 })
   }
 
-  const storagePath = `${userId}/${chatId}/${crypto.randomUUID()}-${file.name}`
+  const ownerKey = userId ?? anonSessionId
+  const storagePath = `${ownerKey}/${chatId}/${crypto.randomUUID()}-${file.name}`
   const bufferPromise = file.arrayBuffer()
   const extractedTextPromise = extractAttachmentText(file)
   const buffer = await bufferPromise

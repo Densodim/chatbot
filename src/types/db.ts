@@ -29,6 +29,7 @@ export type AnonymousSession = {
 export type Chat = {
   id: string
   user_id: string | null
+  anonymous_session_fingerprint: string | null
   title: string
   model: string
   created_at: string
@@ -72,6 +73,7 @@ export type AnonymousSessionInsert = {
 
 export type ChatInsert = {
   user_id?: string | null
+  anonymous_session_fingerprint?: string | null
   title?: string
   model?: string
 }

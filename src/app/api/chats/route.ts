@@ -1,20 +1,32 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { getOrCreateAnonymousSession } from '@/lib/anonymous-session'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { ChatInsert } from '@/types/db'
 
 /** GET /api/chats — list all chats for the authenticated user, newest first */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const anonSessionId = request.headers.get('x-anon-session-id')
+
+  if (!userId && !anonSessionId) {
+    return NextResponse.json({ data: [] })
   }
 
-  const { data, error } = await supabaseAdmin
+  const query = supabaseAdmin
     .from('chats')
-    .select('id, title, model, created_at, updated_at')
-    .eq('user_id', userId)
+    .select(
+      'id, user_id, anonymous_session_fingerprint, title, model, created_at, updated_at',
+    )
     .order('updated_at', { ascending: false })
+
+  if (userId) {
+    query.eq('user_id', userId)
+  } else {
+    query.is('user_id', null).eq('anonymous_session_fingerprint', anonSessionId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -26,14 +38,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 /** POST /api/chats — create a new chat for the authenticated user */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const body = (await request.json()) as { title?: string; model?: string }
+  const anonymousSession = userId ? null : await getOrCreateAnonymousSession()
 
   const insert: ChatInsert = {
     user_id: userId,
+    anonymous_session_fingerprint: anonymousSession?.fingerprint ?? null,
     title: body.title ?? 'New Chat',
     model: body.model ?? 'gpt-4o-mini',
   }

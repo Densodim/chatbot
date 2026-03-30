@@ -15,7 +15,8 @@ export async function DELETE(
   ctx: RouteContext,
 ): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -33,12 +34,17 @@ export async function DELETE(
 
   const { data: chat } = await supabaseAdmin
     .from('chats')
-    .select('id')
+    .select('id, user_id, anonymous_session_fingerprint')
     .eq('id', attachment.chat_id)
-    .eq('user_id', userId)
     .single()
 
-  if (!chat) {
+  const hasAccess =
+    userId !== null
+      ? chat?.user_id === userId
+      : chat?.user_id === null &&
+        chat?.anonymous_session_fingerprint === anonSessionId
+
+  if (!chat || !hasAccess) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 

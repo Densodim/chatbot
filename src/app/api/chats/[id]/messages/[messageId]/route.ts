@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { removeAttachmentStorageObjects } from '@/lib/attachment-storage'
 import { supabaseAdmin } from '@/lib/supabase'
+import type { Chat } from '@/types/db'
 
 type RouteContext = {
   params: Promise<{ id: string; messageId: string }>
@@ -12,7 +13,9 @@ export async function DELETE(
   ctx: RouteContext,
 ): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -20,12 +23,20 @@ export async function DELETE(
 
   const { data: chat } = await supabaseAdmin
     .from('chats')
-    .select('id')
+    .select('id, user_id, anonymous_session_fingerprint')
     .eq('id', chatId)
-    .eq('user_id', userId)
     .single()
 
-  if (!chat) {
+  const typedChat = chat as Chat | null
+  const canAccess =
+    typedChat &&
+    (userId
+      ? typedChat.user_id === userId
+      : typedChat.user_id === null &&
+        anonSessionId !== null &&
+        typedChat.anonymous_session_fingerprint === anonSessionId)
+
+  if (!canAccess) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 

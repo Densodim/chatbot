@@ -6,12 +6,14 @@ type AnonymousSessionResponse = {
   data: {
     remaining: number
     messageCount: number
+    total: number
   }
 }
 
 async function fetchAnonymousSession(): Promise<{
   remaining: number
   messageCount: number
+  total: number
 }> {
   const response = await fetch('/api/anonymous/session')
 
@@ -33,6 +35,7 @@ export function useAnonymousSession(enabled = true) {
   return {
     remainingMessages: query.data?.remaining ?? 3,
     messageCount: query.data?.messageCount ?? 0,
+    totalMessages: query.data?.total ?? 3,
     isLoading: query.isLoading,
   }
 }

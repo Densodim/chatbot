@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { PlusIcon } from '@/components/icons'
-import { useAuth } from '@/hooks/useAuth'
 import { useChats } from '@/hooks/useChats'
 
 type Props = {
@@ -12,16 +11,9 @@ type Props = {
 
 export function NewChatButton({ onCreated }: Props) {
   const router = useRouter()
-  const { user } = useAuth()
-  const { createChat, isCreating } = useChats(user !== null)
+  const { createChat, isCreating } = useChats()
 
   const handleCreateChat = async () => {
-    if (!user) {
-      toast.error('Sign in to create a chat.')
-      router.push('/')
-      return
-    }
-
     try {
       const chat = await createChat()
       router.push(`/chats/${chat.id}`)

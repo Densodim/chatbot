@@ -2,18 +2,42 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { removeAttachmentStorageObjects } from '@/lib/attachment-storage'
 import { supabaseAdmin } from '@/lib/supabase'
-import type { ChatUpdate } from '@/types/db'
+import type { Chat, ChatUpdate } from '@/types/db'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
-/** Returns the chat only if it belongs to the given user; null otherwise. */
-async function getOwnedChat(chatId: string, userId: string) {
+function canAccessChat(
+  chat: Pick<Chat, 'user_id' | 'anonymous_session_fingerprint'>,
+  userId: string | null,
+  anonSessionId: string | null,
+): boolean {
+  if (userId) {
+    return chat.user_id === userId
+  }
+
+  return (
+    chat.user_id === null &&
+    anonSessionId !== null &&
+    chat.anonymous_session_fingerprint === anonSessionId
+  )
+}
+
+/** Returns the chat only if it belongs to the current actor; null otherwise. */
+async function getOwnedChat(
+  chatId: string,
+  userId: string | null,
+  anonSessionId: string | null,
+) {
   const { data } = await supabaseAdmin
     .from('chats')
     .select('*')
     .eq('id', chatId)
-    .eq('user_id', userId)
     .single()
+
+  if (!data || !canAccessChat(data as Chat, userId, anonSessionId)) {
+    return null
+  }
+
   return data
 }
 
@@ -23,12 +47,13 @@ export async function GET(
   ctx: RouteContext,
 ): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id } = await ctx.params
-  const chat = await getOwnedChat(id, userId)
+  const chat = await getOwnedChat(id, userId, anonSessionId)
 
   if (!chat) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -43,12 +68,13 @@ export async function PATCH(
   ctx: RouteContext,
 ): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id } = await ctx.params
-  const chat = await getOwnedChat(id, userId)
+  const chat = await getOwnedChat(id, userId, anonSessionId)
 
   if (!chat) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -93,12 +119,13 @@ export async function DELETE(
   ctx: RouteContext,
 ): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id } = await ctx.params
-  const chat = await getOwnedChat(id, userId)
+  const chat = await getOwnedChat(id, userId, anonSessionId)
 
   if (!chat) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

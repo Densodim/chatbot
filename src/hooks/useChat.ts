@@ -28,6 +28,11 @@ async function getSendErrorMessage(response: Response): Promise<string> {
   const json = (await response
     .json()
     .catch(() => null)) as ApiErrorResponse | null
+
+  if (json?.error === 'limit_reached') {
+    return 'You have reached the free message limit. Sign up to continue.'
+  }
+
   return json?.error ?? 'Failed to send message'
 }
 
@@ -111,6 +116,9 @@ export function useChat(chatId: string | null, userId: string | null = null) {
         })
         await queryClient.invalidateQueries({
           queryKey: ['chats'],
+        })
+        await queryClient.invalidateQueries({
+          queryKey: ['anonymous', 'session'],
         })
         if (userId) {
           publishRealtimeEvent({

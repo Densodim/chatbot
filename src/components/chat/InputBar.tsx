@@ -181,9 +181,11 @@ export function InputBar({
     <div className='sticky bottom-0 border-t border-[color:var(--color-border)] bg-[color:var(--color-shell)]/96 px-4 pb-4 pt-3 backdrop-blur sm:px-6'>
       <div className='mx-auto w-full max-w-4xl'>
         {remainingFreeMessages === null ? null : (
-          <div className='mb-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-3 text-sm text-[color:var(--color-muted-foreground)]'>
-            {remainingFreeMessages} free messages remaining
-          </div>
+          <p className='mb-3 px-1 text-xs text-[color:var(--color-muted-foreground)]'>
+            {remainingFreeMessages > 0
+              ? `${remainingFreeMessages} free message${remainingFreeMessages === 1 ? '' : 's'} remaining`
+              : "You've reached the free limit. Sign up to continue."}
+          </p>
         )}
 
         {attachments.length > 0 ? (

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { toast } from 'sonner'
+import { AnonymousBanner } from '@/components/chat/AnonymousBanner'
 import { InputBar } from '@/components/chat/InputBar'
 import { MessageList } from '@/components/chat/MessageList'
 import { useAnonymousSession } from '@/hooks/useAnonymousSession'
@@ -24,8 +25,9 @@ export function ChatPage({ chatId }: Props) {
     isSending,
     streamingMessage,
     sendMessage,
-  } = useChat(user ? chatId : null, user?.id ?? null)
-  const { remainingMessages } = useAnonymousSession(user === null)
+  } = useChat(chatId, user?.id ?? null)
+  const { remainingMessages, totalMessages, isLoading: isAnonymousLoading } =
+    useAnonymousSession(!isAuthLoading && user === null)
   useMessagesRealtime(user?.id ?? null, chatId)
   const {
     attachments,
@@ -41,18 +43,23 @@ export function ChatPage({ chatId }: Props) {
   } | null>(null)
 
   const remainingFreeMessages = user ? null : remainingMessages
+  const hasReachedAnonymousLimit =
+    !user && remainingFreeMessages !== null && remainingFreeMessages <= 0
 
   const isComposerDisabled = useMemo(
-    () => isAuthLoading || !user || chatId === null,
-    [chatId, isAuthLoading, user],
+    () =>
+      isAuthLoading ||
+      chatId === null ||
+      (!user && (isAnonymousLoading || hasReachedAnonymousLimit)),
+    [chatId, hasReachedAnonymousLimit, isAnonymousLoading, isAuthLoading, user],
   )
 
   const handleSend = async (
     input: SendMessageInput,
     attachments: BubbleAttachment[],
   ) => {
-    if (!user) {
-      toast.error('Sign in to start a saved chat.')
+    if (hasReachedAnonymousLimit) {
+      toast.error('You have reached the free limit. Sign up to continue.')
       return
     }
 
@@ -115,10 +122,17 @@ export function ChatPage({ chatId }: Props) {
         </div>
       ) : null}
 
+      {user ? null : (
+        <AnonymousBanner
+          remainingMessages={remainingMessages}
+          totalMessages={totalMessages}
+        />
+      )}
+
       <MessageList
         messages={messages}
         optimisticMessage={optimisticMessage}
-        isLoading={isAuthLoading || isMessagesLoading}
+        isLoading={isAuthLoading || (!user && isAnonymousLoading) || isMessagesLoading}
         streamingMessage={streamingMessage}
         onSuggestion={value => {
           void handleSuggestion(value)

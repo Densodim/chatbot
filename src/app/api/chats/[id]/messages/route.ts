@@ -2,13 +2,17 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { isImageMimeType, truncateDocumentContext } from '@/lib/attachments'
 import {
+  ANON_MESSAGE_LIMIT,
+  getAnonymousSessionByFingerprint,
+} from '@/lib/anonymous-session'
+import {
   type LlmContentPart,
   type LlmMessage,
   streamChatCompletion,
 } from '@/lib/llm'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { ChatMessage } from '@/types/chat'
-import type { Attachment, Message } from '@/types/db'
+import type { Attachment, Chat, Message } from '@/types/db'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -20,6 +24,8 @@ type SendMessageBody = {
 type OwnedChat = {
   id: string
   model: string
+  user_id: string | null
+  anonymous_session_fingerprint: string | null
 }
 
 type MessageContextResult = {
@@ -61,16 +67,32 @@ function resolveChatModel(model: string, hasImages: boolean): string {
 
 async function getOwnedChat(
   chatId: string,
-  userId: string,
+  userId: string | null,
+  anonSessionId: string | null,
 ): Promise<OwnedChat | null> {
   const { data } = await supabaseAdmin
     .from('chats')
-    .select('id, model')
+    .select('id, model, user_id, anonymous_session_fingerprint')
     .eq('id', chatId)
-    .eq('user_id', userId)
     .single()
 
-  return (data as OwnedChat | null) ?? null
+  if (!data) {
+    return null
+  }
+
+  const chat = data as Chat
+  const canAccess =
+    userId !== null
+      ? chat.user_id === userId
+      : chat.user_id === null &&
+        anonSessionId !== null &&
+        chat.anonymous_session_fingerprint === anonSessionId
+
+  if (!canAccess) {
+    return null
+  }
+
+  return data as OwnedChat
 }
 
 function buildSystemPrompt(attachments: Attachment[]): string {
@@ -244,12 +266,14 @@ export async function GET(
   ctx: RouteContext,
 ): Promise<NextResponse> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id: chatId } = await ctx.params
-  const chat = await getOwnedChat(chatId, userId)
+  const chat = await getOwnedChat(chatId, userId, anonSessionId)
 
   if (!chat) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -319,15 +343,33 @@ export async function POST(
   ctx: RouteContext,
 ): Promise<Response> {
   const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const anonSessionId = request.headers.get('x-anon-session-id')
+
+  if (!userId && !anonSessionId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id: chatId } = await ctx.params
-  const chat = await getOwnedChat(chatId, userId)
+  const chat = await getOwnedChat(chatId, userId, anonSessionId)
 
   if (!chat) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  const anonymousSession =
+    userId || !anonSessionId
+      ? null
+      : await getAnonymousSessionByFingerprint(anonSessionId)
+
+  if (anonSessionId && !anonymousSession) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (
+    anonymousSession &&
+    Number(anonymousSession.message_count) >= ANON_MESSAGE_LIMIT
+  ) {
+    return NextResponse.json({ error: 'limit_reached' }, { status: 403 })
   }
 
   const body = (await request.json()) as SendMessageBody
@@ -396,7 +438,7 @@ export async function POST(
     resolveChatModel(chat.model, hasImages),
     {
       onComplete: async fullContent => {
-        await Promise.all([
+        const updates = [
           supabaseAdmin
             .from('messages')
             .update({ content: fullContent })
@@ -405,7 +447,23 @@ export async function POST(
             .from('chats')
             .update({ updated_at: new Date().toISOString() })
             .eq('id', chatId),
-        ])
+        ]
+
+        if (anonymousSession) {
+          updates.push(
+            supabaseAdmin
+              .from('anonymous_sessions')
+              .update({
+                message_count: Math.min(
+                  ANON_MESSAGE_LIMIT,
+                  Number(anonymousSession.message_count) + 1,
+                ),
+              })
+              .eq('fingerprint', anonymousSession.fingerprint),
+          )
+        }
+
+        await Promise.all(updates)
       },
     },
   )

@@ -23,28 +23,22 @@ function SidebarSkeleton() {
 
 export function ChatList() {
   const pathname = usePathname()
-  const { user } = useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth()
   useChatsRealtime(user?.id ?? null)
   const { chats, deleteChat, deletingChatId, isLoading } = useChats(
-    user !== null,
+    !isAuthLoading,
   )
 
-  if (!user) {
-    return (
-      <div className='rounded-2xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-5 text-sm text-[color:var(--color-muted-foreground)]'>
-        Sign in to keep a sidebar of saved chats.
-      </div>
-    )
-  }
-
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
     return <SidebarSkeleton />
   }
 
   if (chats.length === 0) {
     return (
       <div className='rounded-2xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-5 text-sm text-[color:var(--color-muted-foreground)]'>
-        No chats yet. Start a new conversation.
+        {user
+          ? 'No chats yet. Start a new conversation.'
+          : 'No guest chats yet. Start a new conversation.'}
       </div>
     )
   }

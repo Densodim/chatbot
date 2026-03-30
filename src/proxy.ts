@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { ANON_MESSAGE_LIMIT } from '@/lib/anonymous-session'
+import { supabaseAdmin } from '@/lib/supabase'
 
 const ACCESS_TOKEN_COOKIE = 'sb-access-token'
 const ANON_SESSION_COOKIE = 'anon_session_id'
+const CHAT_MESSAGES_PATH_RE = /^\/api\/chats\/[^/]+\/messages$/
 
 // Hoisted RegExp literals (useTopLevelRegex)
 const BASE64URL_PLUS_RE = /-/g
@@ -47,11 +50,44 @@ function extractUserId(token: string): string | null {
   return payload.sub
 }
 
-export function proxy(request: NextRequest): NextResponse {
-  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
-  const anonSessionId = request.cookies.get(ANON_SESSION_COOKIE)?.value
+function isAnonymousMessagePost(
+  request: NextRequest,
+  userId: string | null,
+  anonSessionId: string | null,
+): boolean {
+  return (
+    request.method === 'POST' &&
+    userId === null &&
+    anonSessionId !== null &&
+    CHAT_MESSAGES_PATH_RE.test(request.nextUrl.pathname)
+  )
+}
+
+async function isAnonymousLimitReached(anonSessionId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('anonymous_sessions')
+    .select('message_count')
+    .eq('fingerprint', anonSessionId)
+    .single()
+
+  return Number(data?.message_count ?? 0) >= ANON_MESSAGE_LIMIT
+}
+
+export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null
+  const anonSessionId =
+    request.cookies.get(ANON_SESSION_COOKIE)?.value ?? null
   const userId = accessToken ? extractUserId(accessToken) : null
-  const { pathname } = request.nextUrl
+
+  if (isAnonymousMessagePost(request, userId, anonSessionId)) {
+    const hasReachedLimit = await isAnonymousLimitReached(
+      anonSessionId as string,
+    )
+
+    if (hasReachedLimit) {
+      return NextResponse.json({ error: 'limit_reached' }, { status: 403 })
+    }
+  }
 
   // Forward verified identity to downstream API route handlers via headers.
   const forwardedHeaders = new Headers(request.headers)
@@ -61,20 +97,9 @@ export function proxy(request: NextRequest): NextResponse {
     forwardedHeaders.set('x-anon-session-id', anonSessionId)
   }
 
-  // /api/chats/* — authenticated users only.
-  if (pathname.startsWith('/api/chats/') && !userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  // /api/messages/* — authenticated OR anonymous session required.
-  // Actual message-count limit is enforced in the route handler.
-  if (pathname.startsWith('/api/messages/') && !userId && !anonSessionId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   return NextResponse.next({ request: { headers: forwardedHeaders } })
 }
 
 export const config = {
-  matcher: ['/api/chats/:path*', '/api/messages/:path*'],
+  matcher: ['/api/chats/:path*', '/api/messages/:path*', '/api/attachments/:path*'],
 }

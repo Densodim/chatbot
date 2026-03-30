@@ -29,6 +29,7 @@ create table public.anonymous_sessions (
 create table public.chats (
   id         uuid        primary key default gen_random_uuid(),
   user_id    uuid        references auth.users (id) on delete cascade, -- null = anonymous
+  anonymous_session_fingerprint text,
   title      text        not null default 'New Chat',
   model      text        not null default 'gpt-4o-mini',
   created_at timestamptz not null default now(),
@@ -68,6 +69,9 @@ create table public.attachments (
 -- sidebar list: user's chats ordered by most-recently active
 create index idx_chats_user_updated
   on public.chats (user_id, updated_at desc);
+
+create index idx_chats_anon_updated
+  on public.chats (anonymous_session_fingerprint, updated_at desc);
 
 -- chat history: messages in chronological order
 create index idx_messages_chat_created
