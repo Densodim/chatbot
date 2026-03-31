@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import type { AuthUser } from '@/types/auth'
@@ -33,6 +34,7 @@ async function fetchCurrentUser(): Promise<AuthUser | null> {
 
 export function useAuth() {
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const { data: user = null, isLoading } = useQuery({
     queryKey: AUTH_QUERY_KEY,
@@ -76,7 +78,8 @@ export function useAuth() {
   const logout = useCallback(async (): Promise<void> => {
     await fetch('/api/auth/logout', { method: 'POST' })
     await queryClient.invalidateQueries()
-  }, [queryClient])
+    router.push('/')
+  }, [queryClient, router])
 
   return { user, isLoading, login, signup, logout }
 }

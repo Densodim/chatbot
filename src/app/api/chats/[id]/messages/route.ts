@@ -51,7 +51,7 @@ const SUPPORTED_MODELS = new Set([
   'gpt-4o',
   'gpt-3.5-turbo',
   'llama-3.1-8b-instant',
-  'llama-3.1-70b-versatile',
+  'llama-3.3-70b-versatile',
 ])
 
 function normalizeRequestedAttachmentIds(ids: string[] | undefined): string[] {
@@ -67,8 +67,12 @@ function resolveChatModel(model: string, hasImages: boolean): string {
     return 'gpt-4o'
   }
 
-  // Map Groq models to their equivalents
-  if (model === 'llama-3.1-8b-instant' || model === 'llama-3.1-70b-versatile') {
+  // Map old decommissioned models to new equivalents
+  if (model === 'llama-3.1-70b-versatile') {
+    return 'llama-3.3-70b-versatile'
+  }
+
+  if (model === 'llama-3.1-8b-instant' || model === 'llama-3.3-70b-versatile') {
     return model
   }
 
@@ -404,8 +408,19 @@ export async function POST(
   }
 
   if (pendingAttachments.length !== attachmentIds.length) {
+    const foundIds = pendingAttachments.map(a => a.id)
+    const missingIds = attachmentIds.filter(id => !foundIds.includes(id))
     return NextResponse.json(
-      { error: 'Some attachments are missing or already linked' },
+      { 
+        error: 'Some attachments are missing or already linked',
+        debug: {
+          requestedCount: attachmentIds.length,
+          foundCount: pendingAttachments.length,
+          requestedIds: attachmentIds,
+          foundIds,
+          missingIds,
+        }
+      },
       { status: 400 },
     )
   }

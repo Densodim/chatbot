@@ -35,9 +35,12 @@ export function useMessagesRealtime(
         return
       }
 
-      void queryClient.invalidateQueries({
-        queryKey: ['chat', chatId, 'messages'],
-      })
+      // Small delay to avoid race condition with local invalidateQueries
+      setTimeout(() => {
+        void queryClient.invalidateQueries({
+          queryKey: ['chat', chatId, 'messages'],
+        })
+      }, 100)
     }
 
     return () => {

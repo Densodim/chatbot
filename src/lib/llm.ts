@@ -44,9 +44,27 @@ type StreamCallbacks = {
 }
 
 /**
- * Creates a ReadableStream that streams OpenAI completion tokens to the client.
- * `onComplete` is called with the full accumulated text after the stream closes —
- * use it to persist the assistant message content to the database.
+ * Groq API requires string content, not array format.
+ * Convert content parts to simple string for Groq compatibility.
+ */
+function normalizeForGroq(messages: LlmMessage[]): Array<{
+  role: 'user' | 'assistant' | 'system'
+  content: string
+}> {
+  return messages.map(msg => ({
+    role: msg.role,
+    content:
+      typeof msg.content === 'string'
+        ? msg.content
+        : msg.content
+            .map(part => (part.type === 'text' ? part.text : '[image]'))
+            .join('\n'),
+  }))
+}
+
+/**
+ * Creates a ReadableStream that streams LLM completion tokens to the client.
+ * Uses OpenAI GPT-4 Vision for images/documents, falls back to Groq for text-only.
  */
 export function streamChatCompletion(
   messages: LlmMessage[],
@@ -55,52 +73,85 @@ export function streamChatCompletion(
 ): ReadableStream<Uint8Array> {
   return new ReadableStream<Uint8Array>({
     async start(controller) {
+      // Check if any message contains images
+      const hasImages = messages.some(msg => 
+        Array.isArray(msg.content) && 
+        msg.content.some(part => part.type === 'image_url')
+      )
+
+      let fullContent = ''
+
       try {
-        // Try Groq first (free and fast)
-        const groq = getGroqClient()
-        const groqModel = model.includes('gpt-4')
-          ? 'llama-3.1-70b-versatile'
-          : 'llama-3.1-8b-instant'
+        if (hasImages && process.env.OPENAI_API_KEY) {
+          // Use OpenAI GPT-4 Vision for images
+          const openai = getOpenAIClient()
+          const openaiModel = model.includes('gpt-4') ? 'gpt-4o' : 'gpt-4o-mini'
+          
+          const completion = await openai.chat.completions.create({
+            model: openaiModel,
+            messages: messages as any, // OpenAI supports array format
+            stream: true,
+            max_tokens: 4000,
+          })
 
-        const completion = await groq.chat.completions.create({
-          model: groqModel,
-          messages: messages as any,
-          stream: true,
-        })
+          for await (const chunk of completion) {
+            const text = chunk.choices[0]?.delta?.content ?? ''
+            if (text) {
+              fullContent += text
+              callbacks.onChunk?.(text)
+              controller.enqueue(TEXT_ENCODER.encode(text))
+            }
+          }
+        } else {
+          // Use Groq for text-only or fallback
+          const groq = getGroqClient()
+          const groqModel = model.includes('gpt-4')
+            ? 'llama-3.3-70b-versatile'
+            : 'llama-3.1-8b-instant'
 
-        let fullContent = ''
-        for await (const chunk of completion) {
-          const text = chunk.choices[0]?.delta?.content ?? ''
-          if (text) {
-            fullContent += text
-            callbacks.onChunk?.(text)
-            controller.enqueue(TEXT_ENCODER.encode(text))
+          const completion = await groq.chat.completions.create({
+            model: groqModel,
+            messages: normalizeForGroq(messages),
+            stream: true,
+          })
+
+          for await (const chunk of completion) {
+            const text = chunk.choices[0]?.delta?.content ?? ''
+            if (text) {
+              fullContent += text
+              callbacks.onChunk?.(text)
+              controller.enqueue(TEXT_ENCODER.encode(text))
+            }
           }
         }
-        controller.close()
-        await callbacks.onComplete?.(fullContent)
-      } catch (groqError) {
-        console.warn('Groq API failed, trying OpenAI:', groqError)
-        // Fallback to OpenAI
-        const openai = getOpenAIClient()
-        const completion = await openai.chat.completions.create({
-          model,
-          messages:
-            messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-          stream: true,
-        })
-        let fullContent = ''
-        for await (const chunk of completion) {
-          const text = chunk.choices[0]?.delta?.content ?? ''
-          if (text) {
-            fullContent += text
-            callbacks.onChunk?.(text)
-            controller.enqueue(TEXT_ENCODER.encode(text))
+      } catch (error) {
+        // Fallback to Groq if OpenAI fails
+        try {
+          const groq = getGroqClient()
+          const groqModel = 'llama-3.1-8b-instant'
+
+          const completion = await groq.chat.completions.create({
+            model: groqModel,
+            messages: normalizeForGroq(messages),
+            stream: true,
+          })
+
+          for await (const chunk of completion) {
+            const text = chunk.choices[0]?.delta?.content ?? ''
+            if (text) {
+              fullContent += text
+              callbacks.onChunk?.(text)
+              controller.enqueue(TEXT_ENCODER.encode(text))
+            }
           }
+        } catch (fallbackError) {
+          controller.error(fallbackError)
+          return
         }
-        controller.close()
-        await callbacks.onComplete?.(fullContent)
       }
+
+      controller.close()
+      await callbacks.onComplete?.(fullContent)
     },
   })
 }

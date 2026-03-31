@@ -63,7 +63,11 @@ async function readStreamingResponse(
   async function readNextChunk(): Promise<void> {
     const { done, value } = await reader.read()
     if (done) {
-      appendStreamingChunk(setStreamingMessage, decoder.decode())
+      // Flush any remaining decoded content
+      const remaining = decoder.decode()
+      if (remaining) {
+        appendStreamingChunk(setStreamingMessage, remaining)
+      }
       return
     }
 
@@ -109,6 +113,11 @@ export function useChat(chatId: string | null, userId: string | null = null) {
         }
 
         await readStreamingResponse(response, setStreamingMessage)
+        
+        // Clear streaming message after a short delay to allow for smooth transition
+        setTimeout(() => {
+          setStreamingMessage('')
+        }, 100)
       } finally {
         setIsSending(false)
         await queryClient.invalidateQueries({

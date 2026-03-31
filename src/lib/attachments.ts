@@ -1,5 +1,4 @@
 import 'server-only'
-import { extractText } from 'unpdf'
 
 const IMAGE_MIME_PREFIX = 'image/'
 const DOCUMENT_MIME_TYPES = new Set([
@@ -40,21 +39,32 @@ export function truncateDocumentContext(
 }
 
 async function extractPdfText(file: File): Promise<string> {
-  const buffer = new Uint8Array(await file.arrayBuffer())
-  const { text } = await extractText(buffer, { mergePages: true })
-  return normalizeExtractedText(text)
+  try {
+    const { extractText } = await import('unpdf')
+    const buffer = new Uint8Array(await file.arrayBuffer())
+    const { text } = await extractText(buffer, { mergePages: true })
+    return normalizeExtractedText(text)
+  } catch (error) {
+    // Return empty string if extraction fails, don't throw
+    return ''
+  }
 }
 
 export async function extractAttachmentText(
   file: File,
 ): Promise<string | null> {
-  if (file.type === 'text/plain' || file.type === 'text/markdown') {
-    return normalizeExtractedText(await file.text())
-  }
+  try {
+    if (file.type === 'text/plain' || file.type === 'text/markdown') {
+      return normalizeExtractedText(await file.text())
+    }
 
-  if (file.type === 'application/pdf') {
-    return extractPdfText(file)
-  }
+    if (file.type === 'application/pdf') {
+      return await extractPdfText(file)
+    }
 
-  return null
+    return null
+  } catch (error) {
+    // Don't fail the upload if text extraction fails
+    return null
+  }
 }

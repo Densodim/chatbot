@@ -153,7 +153,7 @@ export default function Home() {
       {/* Footer */}
       <footer className='border-t border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-6'>
         <div className='mx-auto max-w-5xl text-center text-sm text-[var(--text-tertiary)]'>
-          Built with Next.js, Tailwind CSS, and AI
+          Built with Next.js, Tailwind CSS
         </div>
       </footer>
 
