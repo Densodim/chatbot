@@ -4,7 +4,6 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { AnonymousSession, AnonymousSessionInsert } from '@/types/db'
 
 export const ANON_SESSION_COOKIE = 'anon_session_id'
-const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 const ANON_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
 export const ANON_MESSAGE_LIMIT = 3
 
@@ -51,7 +50,7 @@ export async function getOrCreateAnonymousSession(): Promise<AnonymousSession> {
 
   jar.set(ANON_SESSION_COOKIE, fingerprint, {
     httpOnly: true,
-    secure: IS_PRODUCTION,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: ANON_COOKIE_MAX_AGE,

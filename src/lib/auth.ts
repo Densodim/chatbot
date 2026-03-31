@@ -5,7 +5,6 @@ import { supabaseAdmin } from './supabase'
 export const ACCESS_TOKEN_COOKIE = 'sb-access-token'
 const REFRESH_TOKEN_COOKIE = 'sb-refresh-token'
 
-const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 30 // 30 days in seconds
 
 /**
@@ -20,14 +19,14 @@ export async function setSessionCookies(
   const jar = await cookies()
   jar.set(ACCESS_TOKEN_COOKIE, accessToken, {
     httpOnly: true,
-    secure: IS_PRODUCTION,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: expiresIn,
   })
   jar.set(REFRESH_TOKEN_COOKIE, refreshToken, {
     httpOnly: true,
-    secure: IS_PRODUCTION,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: REFRESH_MAX_AGE,
