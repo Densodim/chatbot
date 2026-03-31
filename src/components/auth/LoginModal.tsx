@@ -61,9 +61,10 @@ export function LoginModal({ onClose, onSwitchToSignup }: Props) {
               variant='ghost'
               size='icon'
               onClick={onClose}
+              aria-label='Close login modal'
               className='h-8 w-8 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
             >
-              <X className='h-4 w-4' />
+              <X className='h-4 w-4' aria-hidden='true' />
             </Button>
           </div>
           <CardTitle id='login-title' className='pt-2 text-xl'>
@@ -75,11 +76,18 @@ export function LoginModal({ onClose, onSwitchToSignup }: Props) {
         <CardContent>
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+              <label
+                htmlFor='login-email'
+                className='text-sm font-medium text-[color:var(--text-secondary)]'
+              >
                 Email
               </label>
               <Input
+                id='login-email'
                 type='email'
+                name='email'
+                autoComplete='email'
+                spellCheck={false}
                 placeholder='Enter your email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -88,11 +96,18 @@ export function LoginModal({ onClose, onSwitchToSignup }: Props) {
             </div>
 
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+              <label
+                htmlFor='login-password'
+                className='text-sm font-medium text-[color:var(--text-secondary)]'
+              >
                 Password
               </label>
               <Input
+                id='login-password'
                 type='password'
+                name='password'
+                autoComplete='current-password'
+                spellCheck={false}
                 placeholder='Enter your password'
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -107,7 +122,7 @@ export function LoginModal({ onClose, onSwitchToSignup }: Props) {
             )}
 
             <Button type='submit' className='w-full' disabled={isPending}>
-              {isPending ? 'Signing in...' : 'Sign in'}
+              {isPending ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
 

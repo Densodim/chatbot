@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { forwardRef, type HTMLAttributes } from 'react'
 
 const cardVariants = cva(
-  'rounded-xl border bg-[color:var(--bg-card)] transition-all duration-200',
+  'rounded-xl border bg-[color:var(--bg-card)] transition-colors duration-200',
   {
     variants: {
       variant: {

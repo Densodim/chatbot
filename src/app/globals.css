@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  color-scheme: dark;
+}
+
 :root {
   /* Background Colors */
   --bg-primary: #0d0d0f;

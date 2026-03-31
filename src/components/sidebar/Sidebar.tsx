@@ -129,7 +129,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: Props) {
       <Overlay isOpen={isOpen} onClose={onClose} />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[260px] max-w-[85vw] transition duration-200 md:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-[260px] max-w-[85vw] overflow-y-auto overscroll-contain transition duration-200 md:hidden ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

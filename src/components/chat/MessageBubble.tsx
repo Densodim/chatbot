@@ -32,6 +32,9 @@ const AttachmentItem = memo(function AttachmentItem({
           <img
             src={attachment.previewUrl}
             alt={attachment.fileName}
+            width={400}
+            height={176}
+            loading='lazy'
             className='h-44 w-full object-cover'
           />
         ) : (

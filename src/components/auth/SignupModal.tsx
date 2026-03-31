@@ -62,9 +62,10 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
               variant='ghost'
               size='icon'
               onClick={onClose}
+              aria-label='Close signup modal'
               className='h-8 w-8 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
             >
-              <X className='h-4 w-4' />
+              <X className='h-4 w-4' aria-hidden='true' />
             </Button>
           </div>
           <CardTitle id='signup-title' className='pt-2 text-xl'>
@@ -76,11 +77,16 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
         <CardContent>
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+              <label
+                htmlFor='signup-displayname'
+                className='text-sm font-medium text-[color:var(--text-secondary)]'
+              >
                 Display name (optional)
               </label>
               <Input
+                id='signup-displayname'
                 type='text'
+                name='displayName'
                 placeholder='Your name'
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
@@ -88,11 +94,18 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
             </div>
 
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+              <label
+                htmlFor='signup-email'
+                className='text-sm font-medium text-[color:var(--text-secondary)]'
+              >
                 Email
               </label>
               <Input
+                id='signup-email'
                 type='email'
+                name='email'
+                autoComplete='email'
+                spellCheck={false}
                 placeholder='Enter your email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -101,11 +114,18 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
             </div>
 
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+              <label
+                htmlFor='signup-password'
+                className='text-sm font-medium text-[color:var(--text-secondary)]'
+              >
                 Password
               </label>
               <Input
+                id='signup-password'
                 type='password'
+                name='password'
+                autoComplete='new-password'
+                spellCheck={false}
                 placeholder='Create a password'
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -121,7 +141,7 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
             )}
 
             <Button type='submit' className='w-full' disabled={isPending}>
-              {isPending ? 'Creating account...' : 'Create account'}
+              {isPending ? 'Creating account…' : 'Create account'}
             </Button>
           </form>
 
