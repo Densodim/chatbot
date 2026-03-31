@@ -1,6 +1,6 @@
 import 'server-only'
-import OpenAI from 'openai'
 import Groq from 'groq-sdk'
+import OpenAI from 'openai'
 
 let openai: OpenAI | undefined
 let groq: Groq | undefined
@@ -17,7 +17,7 @@ function getOpenAIClient() {
 
 function getGroqClient() {
   const apiKey = process.env.GROQ_API_KEY
-  
+
   if (!apiKey) {
     throw new Error('Missing required environment variable: GROQ_API_KEY')
   }
@@ -58,14 +58,16 @@ export function streamChatCompletion(
       try {
         // Try Groq first (free and fast)
         const groq = getGroqClient()
-        const groqModel = model.includes('gpt-4') ? 'llama-3.1-70b-versatile' : 'llama-3.1-8b-instant'
-        
+        const groqModel = model.includes('gpt-4')
+          ? 'llama-3.1-70b-versatile'
+          : 'llama-3.1-8b-instant'
+
         const completion = await groq.chat.completions.create({
           model: groqModel,
           messages: messages as any,
           stream: true,
         })
-        
+
         let fullContent = ''
         for await (const chunk of completion) {
           const text = chunk.choices[0]?.delta?.content ?? ''
@@ -83,7 +85,8 @@ export function streamChatCompletion(
         const openai = getOpenAIClient()
         const completion = await openai.chat.completions.create({
           model,
-          messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+          messages:
+            messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
           stream: true,
         })
         let fullContent = ''

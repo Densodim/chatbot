@@ -39,10 +39,10 @@ export async function DELETE(
     .single()
 
   const hasAccess =
-    userId !== null
-      ? chat?.user_id === userId
-      : chat?.user_id === null &&
+    userId === null
+      ? chat?.user_id === null &&
         chat?.anonymous_session_fingerprint === anonSessionId
+      : chat?.user_id === userId
 
   if (!chat || !hasAccess) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

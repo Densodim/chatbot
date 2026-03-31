@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { toast } from 'sonner'
 import { AnonymousBanner } from '@/components/chat/AnonymousBanner'
@@ -17,7 +17,15 @@ type Props = {
   chatId: string | null
 }
 
-export function ChatPage({ chatId }: Props) {
+// Static dropzone config - hoisted to module level to prevent re-creation
+const DROPZONE_ACCEPT = {
+  'image/*': [],
+  'application/pdf': ['.pdf'],
+  'text/plain': ['.txt'],
+  'text/markdown': ['.md'],
+} as const
+
+export const ChatPage = memo(function ChatPage({ chatId }: Props) {
   const { user, isLoading: isAuthLoading } = useAuth()
   const {
     messages,
@@ -26,8 +34,11 @@ export function ChatPage({ chatId }: Props) {
     streamingMessage,
     sendMessage,
   } = useChat(chatId, user?.id ?? null)
-  const { remainingMessages, totalMessages, isLoading: isAnonymousLoading } =
-    useAnonymousSession(!isAuthLoading && user === null)
+  const {
+    remainingMessages,
+    totalMessages,
+    isLoading: isAnonymousLoading,
+  } = useAnonymousSession(!isAuthLoading && user === null)
   useMessagesRealtime(user?.id ?? null, chatId)
   const {
     attachments,
@@ -42,6 +53,7 @@ export function ChatPage({ chatId }: Props) {
     attachments: BubbleAttachment[]
   } | null>(null)
 
+  // Derived state - computed during render (rerender-derived-state-no-effect)
   const remainingFreeMessages = user ? null : remainingMessages
   const hasReachedAnonymousLimit =
     !user && remainingFreeMessages !== null && remainingFreeMessages <= 0
@@ -54,52 +66,116 @@ export function ChatPage({ chatId }: Props) {
     [chatId, hasReachedAnonymousLimit, isAnonymousLoading, isAuthLoading, user],
   )
 
-  const handleSend = async (
-    input: SendMessageInput,
-    attachments: BubbleAttachment[],
-  ) => {
-    if (hasReachedAnonymousLimit) {
-      toast.error('You have reached the free limit. Sign up to continue.')
-      return
-    }
+  // Stable callbacks - useCallback to prevent child re-renders
+  const handleSend = useCallback(
+    async (input: SendMessageInput, attachments: BubbleAttachment[]) => {
+      if (hasReachedAnonymousLimit) {
+        toast.error('You have reached the free limit. Sign up to continue.')
+        return
+      }
 
-    const content = input.content?.trim() ?? ''
-    setOptimisticMessage({ content, attachments })
+      const content = input.content?.trim() ?? ''
+      setOptimisticMessage({ content, attachments })
 
-    try {
-      await sendMessage(input)
-    } finally {
-      setOptimisticMessage(null)
-    }
-  }
-
-  const handleSuggestion = async (value: string) => {
-    await handleSend({ content: value }, [])
-  }
-
-  const dropzone = useDropzone({
-    noClick: true,
-    noKeyboard: true,
-    disabled: chatId === null || isComposerDisabled,
-    accept: {
-      'image/*': [],
-      'application/pdf': ['.pdf'],
-      'text/plain': ['.txt'],
-      'text/markdown': ['.md'],
+      try {
+        await sendMessage(input)
+      } finally {
+        setOptimisticMessage(null)
+      }
     },
-    onDropAccepted: acceptedFiles => {
+    [hasReachedAnonymousLimit, sendMessage],
+  )
+
+  const handleSuggestion = useCallback(
+    async (value: string) => {
+      await handleSend({ content: value }, [])
+    },
+    [handleSend],
+  )
+
+  // Stable dropzone callbacks - prevent re-creation on every render
+  const onDropAccepted = useCallback(
+    (acceptedFiles: File[]) => {
       void upload(acceptedFiles).catch(error => {
         toast.error(
           error instanceof Error ? error.message : 'Failed to upload file.',
         )
       })
     },
-    onDropRejected: () => {
-      toast.error(
-        'Only images, PDF, TXT, and Markdown files up to 10 MB are allowed.',
-      )
-    },
+    [upload],
+  )
+
+  const onDropRejected = useCallback(() => {
+    toast.error(
+      'Only images, PDF, TXT, and Markdown files up to 10 MB are allowed.',
+    )
+  }, [])
+
+  const dropzone = useDropzone({
+    noClick: true,
+    noKeyboard: true,
+    disabled: chatId === null || isComposerDisabled,
+    accept: DROPZONE_ACCEPT,
+    onDropAccepted,
+    onDropRejected,
   })
+
+  // Pre-compute stable props for MessageList
+  const messageListProps = useMemo(
+    () => ({
+      messages,
+      optimisticMessage,
+      isLoading:
+        isAuthLoading || (!user && isAnonymousLoading) || isMessagesLoading,
+      streamingMessage,
+      onSuggestion: handleSuggestion,
+      isDisabled: isComposerDisabled || isSending,
+    }),
+    [
+      messages,
+      optimisticMessage,
+      isAuthLoading,
+      user,
+      isAnonymousLoading,
+      isMessagesLoading,
+      streamingMessage,
+      handleSuggestion,
+      isComposerDisabled,
+      isSending,
+    ],
+  )
+
+  // Pre-compute stable props for InputBar
+  const inputBarProps = useMemo(
+    () => ({
+      chatId,
+      attachments,
+      isUploading,
+      isSending,
+      isDisabled: isComposerDisabled,
+      remainingFreeMessages,
+      isDragActive: dropzone.isDragActive,
+      onUploadFiles: upload,
+      onRemoveAttachment: removeAttachment,
+      onResetAttachments: resetAttachments,
+      onRestoreAttachments: restoreAttachments,
+      onSend: handleSend,
+    }),
+    [
+      chatId,
+      attachments,
+      isUploading,
+      isSending,
+      isComposerDisabled,
+      remainingFreeMessages,
+      dropzone.isDragActive,
+      upload,
+      removeAttachment,
+      resetAttachments,
+      restoreAttachments,
+      handleSend,
+    ],
+  )
 
   return (
     <div
@@ -110,12 +186,12 @@ export function ChatPage({ chatId }: Props) {
       <input {...dropzone.getInputProps()} />
 
       {dropzone.isDragActive ? (
-        <div className='pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-none bg-[color:var(--color-accent)]/10 backdrop-blur-[1px]'>
-          <div className='rounded-[32px] border border-[color:var(--color-accent)] bg-white px-6 py-5 text-center shadow-xl'>
-            <p className='font-medium text-[color:var(--color-foreground)]'>
+        <div className='pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-none bg-[color:var(--text-primary)]/10 backdrop-blur-[1px]'>
+          <div className='rounded-xl border border-[color:var(--text-primary)] bg-[color:var(--bg-card)] px-6 py-5 text-center shadow-xl'>
+            <p className='font-medium text-[color:var(--text-primary)]'>
               Drop files to attach them to this chat
             </p>
-            <p className='mt-1 text-sm text-[color:var(--color-muted-foreground)]'>
+            <p className='mt-1 text-sm text-[color:var(--text-secondary)]'>
               Supports images, PDF, TXT, and Markdown documents.
             </p>
           </div>
@@ -129,31 +205,9 @@ export function ChatPage({ chatId }: Props) {
         />
       )}
 
-      <MessageList
-        messages={messages}
-        optimisticMessage={optimisticMessage}
-        isLoading={isAuthLoading || (!user && isAnonymousLoading) || isMessagesLoading}
-        streamingMessage={streamingMessage}
-        onSuggestion={value => {
-          void handleSuggestion(value)
-        }}
-        isDisabled={isComposerDisabled || isSending}
-      />
+      <MessageList {...messageListProps} />
 
-      <InputBar
-        chatId={chatId}
-        attachments={attachments}
-        isUploading={isUploading}
-        isSending={isSending}
-        isDisabled={isComposerDisabled}
-        remainingFreeMessages={remainingFreeMessages}
-        isDragActive={dropzone.isDragActive}
-        onUploadFiles={upload}
-        onRemoveAttachment={removeAttachment}
-        onResetAttachments={resetAttachments}
-        onRestoreAttachments={restoreAttachments}
-        onSend={handleSend}
-      />
+      <InputBar {...inputBarProps} />
     </div>
   )
-}
+})

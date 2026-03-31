@@ -63,7 +63,9 @@ function isAnonymousMessagePost(
   )
 }
 
-async function isAnonymousLimitReached(anonSessionId: string): Promise<boolean> {
+async function isAnonymousLimitReached(
+  anonSessionId: string,
+): Promise<boolean> {
   const { data } = await supabaseAdmin
     .from('anonymous_sessions')
     .select('message_count')
@@ -75,8 +77,7 @@ async function isAnonymousLimitReached(anonSessionId: string): Promise<boolean> 
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null
-  const anonSessionId =
-    request.cookies.get(ANON_SESSION_COOKIE)?.value ?? null
+  const anonSessionId = request.cookies.get(ANON_SESSION_COOKIE)?.value ?? null
   const userId = accessToken ? extractUserId(accessToken) : null
 
   if (isAnonymousMessagePost(request, userId, anonSessionId)) {
@@ -101,5 +102,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ['/api/chats/:path*', '/api/messages/:path*', '/api/attachments/:path*'],
+  matcher: [
+    '/api/chats/:path*',
+    '/api/messages/:path*',
+    '/api/attachments/:path*',
+  ],
 }

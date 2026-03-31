@@ -1,142 +1,224 @@
 'use client'
 
+import { MessageSquare, Shield, Sparkles, Zap } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useState } from 'react'
-import { LoginModal } from '@/components/auth/LoginModal'
-import { SignupModal } from '@/components/auth/SignupModal'
-import { SparklesIcon } from '@/components/icons'
+import { memo, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+
+// Dynamic imports for heavy modal components - bundle optimization
+const LoginModal = dynamic(
+  () =>
+    import('@/components/auth/LoginModal').then(m => ({
+      default: m.LoginModal,
+    })),
+  {
+    ssr: false,
+  },
+)
+
+const SignupModal = dynamic(
+  () =>
+    import('@/components/auth/SignupModal').then(m => ({
+      default: m.SignupModal,
+    })),
+  {
+    ssr: false,
+  },
+)
+
+// Static feature data - hoisted to module level (server-hoist-static-io)
+const FEATURES = [
+  { icon: MessageSquare, text: 'Natural conversations' },
+  { icon: Zap, text: 'Streaming responses' },
+  { icon: Shield, text: 'Secure & private' },
+] as const
+
+// Memoized feature card component - prevents unnecessary re-renders
+const FeatureCard = memo(function FeatureCard({
+  icon: Icon,
+  text,
+}: {
+  icon: typeof MessageSquare
+  text: string
+}) {
+  return (
+    <div className='flex items-center gap-3 rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] px-4 py-3 text-sm text-[color:var(--text-primary)]'>
+      <Icon className='h-4 w-4 text-[color:var(--text-secondary)]' />
+      {text}
+    </div>
+  )
+})
 
 export default function Home() {
   const { user, isLoading } = useAuth()
   const [modal, setModal] = useState<'login' | 'signup' | null>(null)
-  let sessionMessage =
-    'Guest mode is ready with three free messages before signup is required.'
 
-  if (isLoading) {
-    sessionMessage = 'Checking session...'
-  } else if (user) {
-    sessionMessage = 'Your account is ready. Open chats to continue.'
-  }
+  // Derived state - computed during render, not in effect (rerender-derived-state-no-effect)
+  const authButtons = useMemo(() => {
+    if (user) {
+      return (
+        <Link href='/chats'>
+          <Button size='lg'>Open chats</Button>
+        </Link>
+      )
+    }
+    return (
+      <>
+        <Link href='/chats'>
+          <Button size='lg'>Try as guest</Button>
+        </Link>
+        <Button
+          variant='secondary'
+          size='lg'
+          onClick={() => setModal('signup')}
+        >
+          Create account
+        </Button>
+      </>
+    )
+  }, [user])
 
   return (
-    <div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(27,94,127,0.18),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(243,161,77,0.18),_transparent_28%),var(--color-shell)] px-6 py-12'>
-      <div className='absolute inset-0 bg-[linear-gradient(to_bottom,_transparent,_rgba(255,255,255,0.45))]' />
-
-      <main className='relative w-full max-w-5xl rounded-[40px] border border-white/70 bg-white/80 p-8 shadow-2xl shadow-[rgba(15,23,42,0.08)] backdrop-blur md:p-12'>
-        <div className='grid gap-12 lg:grid-cols-[1.1fr,0.9fr] lg:items-center'>
-          <section>
-            <div className='inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-white px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] shadow-sm'>
-              <SparklesIcon className='h-4 w-4 text-[color:var(--color-accent)]' />
-              Next.js 16 + TanStack Query + streaming chat
+    <div className='relative flex min-h-screen flex-col bg-[color:var(--bg-primary)]'>
+      {/* Header */}
+      <header className='border-b border-[color:var(--border-default)] bg-[color:var(--bg-secondary)] px-4 py-3'>
+        <div className='mx-auto flex max-w-5xl items-center justify-between'>
+          <div className='flex items-center gap-3'>
+            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+              <span className='text-sm font-bold'>A</span>
             </div>
+            <span className='text-lg font-semibold text-[color:var(--text-primary)]'>
+              Aura Chat
+            </span>
+          </div>
 
-            <h1 className='mt-6 max-w-2xl font-semibold text-5xl leading-[1.05] tracking-tight text-[color:var(--color-foreground)]'>
-              A clean chat workspace for prompts, screenshots, and document
-              context.
-            </h1>
+          <div className='flex items-center gap-2'>
+            {isLoading ? (
+              <div className='h-10 w-24 animate-pulse rounded-lg bg-[color:var(--bg-hover)]' />
+            ) : user ? (
+              <Link href='/chats'>
+                <Button>Open chats</Button>
+              </Link>
+            ) : (
+              <>
+                <Button variant='ghost' onClick={() => setModal('login')}>
+                  Sign in
+                </Button>
+                <Button onClick={() => setModal('signup')}>Get started</Button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
 
-            <p className='mt-5 max-w-2xl text-lg leading-8 text-[color:var(--color-muted-foreground)]'>
-              The interface mirrors a modern ChatGPT workflow: persistent
-              sidebar, streaming assistant replies, file attachments, and a
-              focused composer built around your REST API and custom hooks.
-            </p>
-
-            <div className='mt-8 flex flex-wrap gap-3'>
-              {user ? (
-                <Link
-                  href='/chats'
-                  className='rounded-2xl bg-[color:var(--color-accent)] px-5 py-3 font-medium text-[color:var(--color-accent-foreground)] shadow-sm transition hover:bg-[color:var(--color-accent-strong)]'
-                >
-                  Open chats
-                </Link>
-              ) : (
-                <>
-                  <Link
-                    href='/chats'
-                    className='rounded-2xl bg-[color:var(--color-accent)] px-5 py-3 font-medium text-[color:var(--color-accent-foreground)] shadow-sm transition hover:bg-[color:var(--color-accent-strong)]'
-                  >
-                    Continue as guest
-                  </Link>
-                  <button
-                    type='button'
-                    onClick={() => setModal('login')}
-                    className='rounded-2xl border border-[color:var(--color-border)] px-5 py-3 font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-panel)]'
-                  >
-                    Sign in
-                  </button>
-                  <button
-                    type='button'
-                    onClick={() => setModal('signup')}
-                    className='rounded-2xl border border-[color:var(--color-border)] px-5 py-3 font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-panel)]'
-                  >
-                    Create account
-                  </button>
-                </>
-              )}
-            </div>
-
-            <div className='mt-8 grid gap-4 sm:grid-cols-3'>
-              {[
-                'Sticky sidebar with saved conversations',
-                'Markdown + code rendering for assistant replies',
-                'Image and document attachments in one composer',
-              ].map(item => (
-                <div
-                  key={item}
-                  className='rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-5 text-sm text-[color:var(--color-foreground)]'
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className='rounded-[32px] border border-[color:var(--color-border)] bg-[color:var(--color-shell)] p-5 shadow-inner'>
-            <div className='rounded-[28px] border border-[color:var(--color-border)] bg-white p-4 shadow-sm'>
-              <div className='flex items-center gap-3'>
-                <div className='flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--color-accent)] text-[color:var(--color-accent-foreground)]'>
-                  <SparklesIcon className='h-5 w-5' />
-                </div>
-                <div>
-                  <p className='font-medium'>Ready for UI prompt 05</p>
-                  <p className='text-sm text-[color:var(--color-muted-foreground)]'>
-                    Sidebar, streaming chat and attachment flow are now wired
-                    in.
-                  </p>
-                </div>
+      {/* Hero */}
+      <main className='flex-1 px-4 py-12'>
+        <div className='mx-auto max-w-5xl'>
+          <div className='grid gap-12 lg:grid-cols-[1.1fr,0.9fr] lg:items-center'>
+            <section className='text-center lg:text-left'>
+              <div className='inline-flex items-center gap-2 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-card)] px-4 py-2 text-sm text-[color:var(--text-secondary)]'>
+                <Sparkles className='h-4 w-4 text-[color:var(--text-primary)]' />
+                AI-powered conversations
               </div>
 
-              <div className='mt-4 space-y-4'>
-                <div className='max-w-[85%] rounded-[24px] border border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-3 text-sm text-[color:var(--color-foreground)]'>
-                  Summarize the uploaded brief and suggest next steps.
-                </div>
-                <div className='ml-auto max-w-[85%] rounded-[24px] bg-[color:var(--color-accent)] px-4 py-3 text-sm text-[color:var(--color-accent-foreground)]'>
-                  I can combine the PDF context with the screenshot and stream
-                  the answer.
-                </div>
-                <div className='max-w-[70%] rounded-[24px] border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm text-[color:var(--color-foreground)]'>
-                  {sessionMessage}
-                </div>
+              <h1 className='mt-6 text-4xl font-semibold leading-tight text-[color:var(--text-primary)] lg:text-5xl'>
+                Chat smarter with <br />
+                <span className='text-gradient'>Aura Chat</span>
+              </h1>
+
+              <p className='mt-4 max-w-xl text-lg text-[color:var(--text-secondary)]'>
+                A clean, modern chat interface for your AI conversations.
+                Support for images, documents, and streaming responses.
+              </p>
+
+              <div className='mt-8 flex flex-wrap justify-center gap-3 lg:justify-start'>
+                {authButtons}
               </div>
-            </div>
-          </section>
+
+              <div className='mt-8 grid gap-3 sm:grid-cols-3'>
+                {FEATURES.map(({ icon, text }) => (
+                  <FeatureCard key={text} icon={icon} text={text} />
+                ))}
+              </div>
+            </section>
+
+            {/* Preview Card - Static JSX hoisted mentally, rendered once */}
+            <PreviewCard />
+          </div>
         </div>
       </main>
 
-      {modal === 'login' ? (
+      {/* Footer */}
+      <footer className='border-t border-[color:var(--border-default)] bg-[color:var(--bg-secondary)] px-4 py-6'>
+        <div className='mx-auto max-w-5xl text-center text-sm text-[color:var(--text-tertiary)]'>
+          Built with Next.js, Tailwind CSS, and AI
+        </div>
+      </footer>
+
+      {modal === 'login' && (
         <LoginModal
           onClose={() => setModal(null)}
           onSwitchToSignup={() => setModal('signup')}
         />
-      ) : null}
+      )}
 
-      {modal === 'signup' ? (
+      {modal === 'signup' && (
         <SignupModal
           onClose={() => setModal(null)}
           onSwitchToLogin={() => setModal('login')}
         />
-      ) : null}
+      )}
     </div>
   )
 }
+
+// Hoisted component - prevents re-creation on every render (rerender-no-inline-components)
+const PreviewCard = memo(function PreviewCard() {
+  return (
+    <section className='hidden lg:block'>
+      <div className='rounded-2xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] p-4'>
+        <div className='space-y-4'>
+          <div className='flex items-start gap-3'>
+            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--bg-hover)] border border-[color:var(--border-default)]'>
+              <span className='text-xs font-bold text-[color:var(--text-secondary)]'>
+                A
+              </span>
+            </div>
+            <div className='rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-hover)] px-4 py-3 text-sm text-[color:var(--text-primary)]'>
+              How can I help you today?
+            </div>
+          </div>
+
+          <div className='flex items-start justify-end gap-3'>
+            <div className='rounded-xl bg-[color:var(--text-primary)] px-4 py-3 text-sm text-[color:var(--bg-primary)]'>
+              Help me write a React component
+            </div>
+          </div>
+
+          <div className='flex items-start gap-3'>
+            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--bg-hover)] border border-[color:var(--border-default)]'>
+              <span className='text-xs font-bold text-[color:var(--text-secondary)]'>
+                A
+              </span>
+            </div>
+            <div className='rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-hover)] px-4 py-3 text-sm text-[color:var(--text-primary)]'>
+              Here&apos;s a simple React component using hooks...
+              <pre className='mt-2 rounded-lg bg-[color:var(--bg-card)] p-2 text-xs'>
+                {`function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <button onClick={() => setCount(c => c + 1)}>
+      Count: {count}
+    </button>
+  );
+}`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+})

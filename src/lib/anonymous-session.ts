@@ -7,7 +7,9 @@ export const ANON_SESSION_COOKIE = 'anon_session_id'
 const ANON_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
 export const ANON_MESSAGE_LIMIT = 3
 
-export async function getAnonymousFingerprintFromCookies(): Promise<string | null> {
+export async function getAnonymousFingerprintFromCookies(): Promise<
+  string | null
+> {
   const jar = await cookies()
   return jar.get(ANON_SESSION_COOKIE)?.value ?? null
 }

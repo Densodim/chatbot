@@ -1,6 +1,16 @@
 'use client'
 
-import { type FormEvent, useId, useState } from 'react'
+import { X } from 'lucide-react'
+import { type FormEvent, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 
 type Props = {
@@ -10,7 +20,6 @@ type Props = {
 
 export function LoginModal({ onClose, onSwitchToSignup }: Props) {
   const { login } = useAuth()
-  const titleId = useId()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -32,68 +41,90 @@ export function LoginModal({ onClose, onSwitchToSignup }: Props) {
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--surface-overlay)] backdrop-blur-sm animate-fade-in'
       role='dialog'
       aria-modal='true'
-      aria-labelledby={titleId}
+      aria-labelledby='login-title'
     >
-      <div className='w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-neutral-900'>
-        <div className='mb-4 flex items-center justify-between'>
-          <h2 id={titleId} className='text-lg font-semibold'>
-            Sign in
-          </h2>
-          <button
-            type='button'
-            onClick={onClose}
-            className='rounded-md p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'
-            aria-label='Close'
-          >
-            ✕
-          </button>
-        </div>
+      <Card className='w-full max-w-[400px] border-[color:var(--border-default)] shadow-xl'>
+        <CardHeader className='space-y-1'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+                <span className='text-sm font-bold'>A</span>
+              </div>
+              <span className='text-lg font-semibold text-[color:var(--text-primary)]'>
+                Aura Chat
+              </span>
+            </div>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={onClose}
+              className='h-8 w-8 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
+            >
+              <X className='h-4 w-4' />
+            </Button>
+          </div>
+          <CardTitle id='login-title' className='pt-2 text-xl'>
+            Welcome back
+          </CardTitle>
+          <CardDescription>Sign in to continue chatting</CardDescription>
+        </CardHeader>
 
-        <form onSubmit={handleSubmit} className='flex flex-col gap-3'>
-          <input
-            type='email'
-            placeholder='Email'
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            className='rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-neutral-700 dark:bg-neutral-800'
-          />
-          <input
-            type='password'
-            placeholder='Password'
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            className='rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-neutral-700 dark:bg-neutral-800'
-          />
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-4'>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+                Email
+              </label>
+              <Input
+                type='email'
+                placeholder='Enter your email'
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          {error === null ? null : (
-            <p className='text-sm text-red-500'>{error}</p>
-          )}
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+                Password
+              </label>
+              <Input
+                type='password'
+                placeholder='Enter your password'
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <button
-            type='submit'
-            disabled={isPending}
-            className='rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50'
-          >
-            {isPending ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+            {error && (
+              <div className='rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-400'>
+                {error}
+              </div>
+            )}
 
-        <p className='mt-4 text-center text-sm text-neutral-500'>
-          {"Don't have an account? "}
-          <button
-            type='button'
-            onClick={onSwitchToSignup}
-            className='text-blue-600 hover:underline dark:text-blue-400'
-          >
-            Sign up
-          </button>
-        </p>
-      </div>
+            <Button type='submit' className='w-full' disabled={isPending}>
+              {isPending ? 'Signing in...' : 'Sign in'}
+            </Button>
+          </form>
+
+          <div className='mt-6 text-center'>
+            <p className='text-sm text-[color:var(--text-secondary)]'>
+              Don&apos;t have an account?{' '}
+              <button
+                type='button'
+                onClick={onSwitchToSignup}
+                className='font-medium text-[color:var(--text-primary)] hover:underline'
+              >
+                Create one
+              </button>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

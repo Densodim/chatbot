@@ -60,10 +60,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .single()
 
   const hasAccess =
-    userId !== null
-      ? chat?.user_id === userId
-      : chat?.user_id === null &&
+    userId === null
+      ? chat?.user_id === null &&
         chat?.anonymous_session_fingerprint === anonSessionId
+      : chat?.user_id === userId
 
   if (!chat || !hasAccess) {
     return NextResponse.json({ error: 'Chat not found' }, { status: 404 })

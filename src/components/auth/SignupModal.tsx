@@ -1,6 +1,16 @@
 'use client'
 
-import { type FormEvent, useId, useState } from 'react'
+import { X } from 'lucide-react'
+import { type FormEvent, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 
 type Props = {
@@ -10,7 +20,6 @@ type Props = {
 
 export function SignupModal({ onClose, onSwitchToLogin }: Props) {
   const { signup } = useAuth()
-  const titleId = useId()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -33,76 +42,103 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--surface-overlay)] backdrop-blur-sm animate-fade-in'
       role='dialog'
       aria-modal='true'
-      aria-labelledby={titleId}
+      aria-labelledby='signup-title'
     >
-      <div className='w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-neutral-900'>
-        <div className='mb-4 flex items-center justify-between'>
-          <h2 id={titleId} className='text-lg font-semibold'>
+      <Card className='w-full max-w-[400px] border-[color:var(--border-default)] shadow-xl'>
+        <CardHeader className='space-y-1'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+                <span className='text-sm font-bold'>A</span>
+              </div>
+              <span className='text-lg font-semibold text-[color:var(--text-primary)]'>
+                Aura Chat
+              </span>
+            </div>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={onClose}
+              className='h-8 w-8 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
+            >
+              <X className='h-4 w-4' />
+            </Button>
+          </div>
+          <CardTitle id='signup-title' className='pt-2 text-xl'>
             Create account
-          </h2>
-          <button
-            type='button'
-            onClick={onClose}
-            className='rounded-md p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'
-            aria-label='Close'
-          >
-            ✕
-          </button>
-        </div>
+          </CardTitle>
+          <CardDescription>Sign up to start chatting</CardDescription>
+        </CardHeader>
 
-        <form onSubmit={handleSubmit} className='flex flex-col gap-3'>
-          <input
-            type='text'
-            placeholder='Display name (optional)'
-            value={displayName}
-            onChange={e => setDisplayName(e.target.value)}
-            className='rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-neutral-700 dark:bg-neutral-800'
-          />
-          <input
-            type='email'
-            placeholder='Email'
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            className='rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-neutral-700 dark:bg-neutral-800'
-          />
-          <input
-            type='password'
-            placeholder='Password'
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            minLength={8}
-            className='rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-neutral-700 dark:bg-neutral-800'
-          />
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-4'>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+                Display name (optional)
+              </label>
+              <Input
+                type='text'
+                placeholder='Your name'
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+              />
+            </div>
 
-          {error === null ? null : (
-            <p className='text-sm text-red-500'>{error}</p>
-          )}
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+                Email
+              </label>
+              <Input
+                type='email'
+                placeholder='Enter your email'
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <button
-            type='submit'
-            disabled={isPending}
-            className='rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50'
-          >
-            {isPending ? 'Creating account…' : 'Create account'}
-          </button>
-        </form>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-[color:var(--text-secondary)]'>
+                Password
+              </label>
+              <Input
+                type='password'
+                placeholder='Create a password'
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+            </div>
 
-        <p className='mt-4 text-center text-sm text-neutral-500'>
-          Already have an account?{' '}
-          <button
-            type='button'
-            onClick={onSwitchToLogin}
-            className='text-blue-600 hover:underline dark:text-blue-400'
-          >
-            Sign in
-          </button>
-        </p>
-      </div>
+            {error && (
+              <div className='rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-400'>
+                {error}
+              </div>
+            )}
+
+            <Button type='submit' className='w-full' disabled={isPending}>
+              {isPending ? 'Creating account...' : 'Create account'}
+            </Button>
+          </form>
+
+          <div className='mt-6 text-center'>
+            <p className='text-sm text-[color:var(--text-secondary)]'>
+              Already have an account?{' '}
+              <button
+                type='button'
+                onClick={onSwitchToLogin}
+                className='font-medium text-[color:var(--text-primary)] hover:underline'
+              >
+                Sign in
+              </button>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

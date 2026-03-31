@@ -8,15 +8,15 @@ export function ChatWorkspace({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className='flex min-h-screen bg-[color:var(--color-shell)]'>
+    <div className='flex min-h-screen bg-[color:var(--bg-primary)]'>
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className='relative flex min-h-screen flex-1 flex-col'>
-        <div className='sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-shell)]/90 px-4 py-3 backdrop-blur md:hidden'>
+        <div className='sticky top-0 z-30 border-b border-[color:var(--border-default)] bg-[color:var(--bg-primary)]/90 px-4 py-3 backdrop-blur md:hidden'>
           <button
             type='button'
             onClick={() => setIsSidebarOpen(true)}
-            className='inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[color:var(--color-border)] bg-white text-[color:var(--color-foreground)] shadow-sm'
+            className='inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] text-[color:var(--text-primary)]'
             aria-label='Open sidebar'
           >
             <MenuIcon className='h-5 w-5' />

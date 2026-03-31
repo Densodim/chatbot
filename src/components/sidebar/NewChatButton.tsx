@@ -30,7 +30,7 @@ export function NewChatButton({ onCreated }: Props) {
       type='button'
       onClick={handleCreateChat}
       disabled={isCreating}
-      className='inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[color:var(--color-accent)] px-4 py-3 font-medium text-[color:var(--color-accent-foreground)] shadow-sm transition hover:bg-[color:var(--color-accent-strong)] disabled:cursor-not-allowed disabled:opacity-60'
+      className='inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[color:var(--text-primary)] px-4 py-3 font-medium text-[color:var(--bg-primary)] transition hover:bg-[color:var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-60'
     >
       <PlusIcon className='h-4 w-4' />
       {isCreating ? 'Creating...' : 'New Chat'}

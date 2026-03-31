@@ -1,10 +1,10 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { isImageMimeType, truncateDocumentContext } from '@/lib/attachments'
 import {
   ANON_MESSAGE_LIMIT,
   getAnonymousSessionByFingerprint,
 } from '@/lib/anonymous-session'
+import { isImageMimeType, truncateDocumentContext } from '@/lib/attachments'
 import {
   type LlmContentPart,
   type LlmMessage,
@@ -47,7 +47,12 @@ const STREAM_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
 } as const
 const SIGNED_URL_TTL_SECONDS = 60 * 60
-const SUPPORTED_MODELS = new Set(['gpt-4o', 'gpt-3.5-turbo', 'llama-3.1-8b-instant', 'llama-3.1-70b-versatile'])
+const SUPPORTED_MODELS = new Set([
+  'gpt-4o',
+  'gpt-3.5-turbo',
+  'llama-3.1-8b-instant',
+  'llama-3.1-70b-versatile',
+])
 
 function normalizeRequestedAttachmentIds(ids: string[] | undefined): string[] {
   if (!ids) {
@@ -87,11 +92,11 @@ async function getOwnedChat(
 
   const chat = data as Chat
   const canAccess =
-    userId !== null
-      ? chat.user_id === userId
-      : chat.user_id === null &&
+    userId === null
+      ? chat.user_id === null &&
         anonSessionId !== null &&
         chat.anonymous_session_fingerprint === anonSessionId
+      : chat.user_id === userId
 
   if (!canAccess) {
     return null

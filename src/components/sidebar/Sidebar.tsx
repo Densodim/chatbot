@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { memo, type ReactNode, useMemo } from 'react'
 import { UserMenu } from '@/components/auth/UserMenu'
-import { SparklesIcon } from '@/components/icons'
 import { ChatList } from '@/components/sidebar/ChatList'
 import { NewChatButton } from '@/components/sidebar/NewChatButton'
 import { useAuth } from '@/hooks/useAuth'
@@ -13,56 +12,77 @@ type Props = {
   onClose: () => void
 }
 
-function SidebarPanel({ onClose }: { onClose: () => void }) {
-  const { user, isLoading } = useAuth()
-  let footerContent: ReactNode
+// Memoized footer content component - prevents re-render when parent changes
+const SidebarFooter = memo(function SidebarFooter({
+  user,
+  isLoading,
+}: {
+  user: { displayName?: string | null; email?: string | null } | null
+  isLoading: boolean
+}) {
+  // Derived state - computed during render (rerender-derived-state-no-effect)
+  const footerContent = useMemo(() => {
+    if (isLoading) {
+      return (
+        <div className='h-14 animate-pulse rounded-xl bg-[color:var(--bg-hover)]' />
+      )
+    }
 
-  if (isLoading) {
-    footerContent = (
-      <div className='h-14 animate-pulse rounded-xl bg-[color:var(--color-panel)]' />
-    )
-  } else if (user) {
-    footerContent = (
-      <div className='flex items-center justify-between gap-3'>
-        <div className='min-w-0'>
-          <p className='truncate font-medium text-sm text-[color:var(--color-foreground)]'>
-            {user.displayName ?? user.email ?? 'Signed in'}
-          </p>
-          <p className='truncate text-xs text-[color:var(--color-muted-foreground)]'>
-            {user.email}
-          </p>
+    if (user) {
+      return (
+        <div className='flex items-center justify-between gap-3'>
+          <div className='min-w-0'>
+            <p className='truncate font-medium text-sm text-[color:var(--text-primary)]'>
+              {user.displayName ?? user.email ?? 'Signed in'}
+            </p>
+            <p className='truncate text-xs text-[color:var(--text-secondary)]'>
+              {user.email}
+            </p>
+          </div>
+          <UserMenu />
         </div>
-        <UserMenu />
-      </div>
-    )
-  } else {
-    footerContent = (
+      )
+    }
+
+    return (
       <div className='space-y-3'>
-        <p className='text-sm text-[color:var(--color-muted-foreground)]'>
+        <p className='text-sm text-[color:var(--text-secondary)]'>
           Sign in to save chats, attachments, and history.
         </p>
         <Link
           href='/'
-          className='inline-flex rounded-xl border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-panel)]'
+          className='inline-flex rounded-lg border border-[color:var(--border-default)] px-3 py-2 text-sm font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--bg-hover)]'
         >
           Open home
         </Link>
       </div>
     )
-  }
+  }, [isLoading, user])
 
   return (
-    <div className='flex h-full flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-sidebar)] px-4 py-4'>
+    <div className='mt-4 rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] p-3'>
+      {footerContent}
+    </div>
+  )
+})
+
+// Memoized panel component - prevents unnecessary re-renders
+const SidebarPanel = memo(function SidebarPanel({
+  onClose,
+}: {
+  onClose: () => void
+}) {
+  const { user, isLoading } = useAuth()
+
+  return (
+    <div className='flex h-full flex-col border-r border-[color:var(--border-default)] bg-[color:var(--bg-secondary)] px-4 py-4'>
       <div className='mb-4 flex items-center gap-3 px-2'>
-        <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--color-accent)] text-[color:var(--color-accent-foreground)] shadow-sm'>
-          <SparklesIcon className='h-5 w-5' />
+        <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+          <span className='text-sm font-bold'>A</span>
         </div>
         <div>
-          <p className='font-semibold text-[color:var(--color-foreground)]'>
-            Chatbot
-          </p>
-          <p className='text-xs text-[color:var(--color-muted-foreground)]'>
-            Structured AI workspace
+          <p className='font-semibold text-[color:var(--text-primary)]'>
+            Aura Chat
           </p>
         </div>
       </div>
@@ -73,29 +93,40 @@ function SidebarPanel({ onClose }: { onClose: () => void }) {
         <ChatList />
       </div>
 
-      <div className='mt-4 rounded-2xl border border-[color:var(--color-border)] bg-white/85 p-3 backdrop-blur'>
-        {footerContent}
-      </div>
+      <SidebarFooter user={user} isLoading={isLoading} />
     </div>
   )
-}
+})
 
-export function Sidebar({ isOpen, onClose }: Props) {
+// Overlay component - extracted to prevent inline function re-creation
+const Overlay = memo(function Overlay({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) {
+  return (
+    <div
+      className={`fixed inset-0 z-40 bg-black/60 transition md:hidden ${
+        isOpen
+          ? 'pointer-events-auto opacity-100'
+          : 'pointer-events-none opacity-0'
+      }`}
+      onClick={onClose}
+      aria-hidden='true'
+    />
+  )
+})
+
+export const Sidebar = memo(function Sidebar({ isOpen, onClose }: Props) {
   return (
     <>
       <aside className='hidden h-screen w-[260px] shrink-0 md:block'>
         <SidebarPanel onClose={onClose} />
       </aside>
 
-      <div
-        className={`fixed inset-0 z-40 bg-black/45 transition md:hidden ${
-          isOpen
-            ? 'pointer-events-auto opacity-100'
-            : 'pointer-events-none opacity-0'
-        }`}
-        onClick={onClose}
-        aria-hidden='true'
-      />
+      <Overlay isOpen={isOpen} onClose={onClose} />
 
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-[260px] max-w-[85vw] transition duration-200 md:hidden ${
@@ -106,4 +137,4 @@ export function Sidebar({ isOpen, onClose }: Props) {
       </aside>
     </>
   )
-}
+})
