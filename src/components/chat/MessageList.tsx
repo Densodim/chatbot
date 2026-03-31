@@ -46,7 +46,7 @@ function LoadingSkeleton() {
           className={`h-24 animate-pulse rounded-[28px] ${
             index % 2 === 0
               ? 'mr-10 bg-white'
-              : 'ml-auto w-[70%] bg-[color:var(--color-panel-strong)]'
+              : 'ml-auto w-[70%] bg-[var(--bg-tertiary)]'
           }`}
         />
       ))}

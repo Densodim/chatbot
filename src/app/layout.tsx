@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' className='h-full antialiased'>
-      <body className='flex min-h-full flex-col bg-[color:var(--color-shell)] text-[color:var(--color-foreground)]'>
+      <body className='flex min-h-full flex-col bg-[#0d0d0f] text-[#f2f2f7]'>
         <QueryProvider>
           {children}
           <Toaster richColors position='top-right' />

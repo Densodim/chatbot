@@ -35,7 +35,7 @@ function isImageAttachment(attachment: BubbleAttachment): boolean {
 function renderAttachmentLead(attachment: BubbleAttachment) {
   if (!isImageAttachment(attachment)) {
     return (
-      <FileIcon className='h-4 w-4 shrink-0 text-[color:var(--text-secondary)]' />
+      <FileIcon className='h-4 w-4 shrink-0 text-[var(--text-secondary)]' />
     )
   }
 
@@ -50,7 +50,7 @@ function renderAttachmentLead(attachment: BubbleAttachment) {
   }
 
   return (
-    <ImageIcon className='h-4 w-4 shrink-0 text-[color:var(--text-secondary)]' />
+    <ImageIcon className='h-4 w-4 shrink-0 text-[var(--text-secondary)]' />
   )
 }
 
@@ -178,10 +178,10 @@ export function InputBar({
   }
 
   return (
-    <div className='sticky bottom-0 border-t border-[color:var(--border-default)] bg-[color:var(--bg-primary)]/96 px-4 pb-4 pt-3 backdrop-blur sm:px-6'>
+    <div className='sticky bottom-0 border-t border-[var(--border-default)] bg-[var(--bg-primary)]/96 px-4 pb-4 pt-3 backdrop-blur sm:px-6'>
       <div className='mx-auto w-full max-w-4xl'>
         {remainingFreeMessages === null ? null : (
-          <p className='mb-3 px-1 text-xs text-[color:var(--text-secondary)]'>
+          <p className='mb-3 px-1 text-xs text-[var(--text-secondary)]'>
             {remainingFreeMessages > 0
               ? `${remainingFreeMessages} free message${remainingFreeMessages === 1 ? '' : 's'} remaining`
               : "You've reached the free limit. Sign up to continue."}
@@ -193,10 +193,10 @@ export function InputBar({
             {attachments.map(attachment => (
               <div
                 key={attachment.id}
-                className='inline-flex max-w-full items-center gap-3 rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] px-2.5 py-2 text-sm'
+                className='inline-flex max-w-full items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] px-2.5 py-2 text-sm'
               >
                 {renderAttachmentLead(attachment)}
-                <span className='truncate text-[color:var(--text-primary)]'>
+                <span className='truncate text-[var(--text-primary)]'>
                   {attachment.fileName}
                 </span>
                 <button
@@ -204,7 +204,7 @@ export function InputBar({
                   onClick={() => {
                     void handleRemoveAttachment(attachment.id)
                   }}
-                  className='text-[color:var(--text-secondary)] transition hover:text-[color:var(--text-primary)]'
+                  className='text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]'
                   aria-label={`Remove ${attachment.fileName}`}
                 >
                   ×
@@ -215,10 +215,10 @@ export function InputBar({
         ) : null}
 
         <div
-          className={`rounded-xl border bg-[color:var(--bg-card)] p-3 transition ${
+          className={`rounded-xl border bg-[var(--bg-card)] p-3 transition ${
             isDragActive
-              ? 'border-[color:var(--text-primary)] ring-2 ring-[color:var(--text-primary)]/20'
-              : 'border-[color:var(--border-default)]'
+              ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/20'
+              : 'border-[var(--border-default)]'
           }`}
         >
           <div className='flex items-end gap-3'>
@@ -238,7 +238,7 @@ export function InputBar({
               type='button'
               onClick={() => fileInputRef.current?.click()}
               disabled={isDisabled || isUploading || isSending}
-              className='inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[color:var(--border-default)] text-[color:var(--text-secondary)] transition hover:border-[color:var(--border-hover)] hover:text-[color:var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-50'
+              className='inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--border-default)] text-[var(--text-secondary)] transition hover:border-[var(--border-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-50'
               aria-label='Attach files'
             >
               <PaperclipIcon className='h-5 w-5' />
@@ -261,7 +261,7 @@ export function InputBar({
                   ? 'Message...'
                   : 'Create a chat from the sidebar to start messaging...'
               }
-              className='max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-1 py-2 text-sm text-[color:var(--text-primary)] outline-none placeholder:text-[color:var(--text-tertiary)]'
+              className='max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-1 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]'
             />
 
             <button
@@ -275,10 +275,10 @@ export function InputBar({
                 isUploading ||
                 (!value.trim() && attachments.length === 0)
               }
-              className='inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)] transition hover:bg-[color:var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50'
+              className='inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-primary)] transition hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40'
               aria-label='Send message'
             >
-              <SendIcon className='h-4 w-4' />
+              <SendIcon className='h-5 w-5' />
             </button>
           </div>
         </div>

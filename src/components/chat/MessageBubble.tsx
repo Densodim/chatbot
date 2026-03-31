@@ -27,7 +27,7 @@ const AttachmentItem = memo(function AttachmentItem({
 }) {
   if (isImageAttachment(attachment)) {
     return (
-      <div className='overflow-hidden rounded-lg border border-[color:var(--border-default)] bg-[color:var(--bg-hover)]'>
+      <div className='overflow-hidden rounded-lg border border-[var(--border-default)] bg-[var(--bg-hover)]'>
         {attachment.previewUrl ? (
           <img
             src={attachment.previewUrl}
@@ -38,7 +38,7 @@ const AttachmentItem = memo(function AttachmentItem({
             className='h-44 w-full object-cover'
           />
         ) : (
-          <div className='flex h-44 items-center justify-center text-[color:var(--text-secondary)]'>
+          <div className='flex h-44 items-center justify-center text-[var(--text-secondary)]'>
             <ImageIcon className='h-8 w-8' />
           </div>
         )}
@@ -47,13 +47,13 @@ const AttachmentItem = memo(function AttachmentItem({
   }
 
   return (
-    <div className='flex items-center gap-3 rounded-lg border border-[color:var(--border-default)] bg-[color:var(--bg-hover)] px-3 py-2'>
-      <FileIcon className='h-5 w-5 shrink-0 text-[color:var(--text-secondary)]' />
+    <div className='flex items-center gap-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-hover)] px-3 py-2'>
+      <FileIcon className='h-5 w-5 shrink-0 text-[var(--text-secondary)]' />
       <div className='min-w-0'>
-        <p className='truncate font-medium text-sm text-[color:var(--text-primary)]'>
+        <p className='truncate font-medium text-sm text-[var(--text-primary)]'>
           {attachment.fileName}
         </p>
-        <p className='text-xs text-[color:var(--text-tertiary)]'>
+        <p className='text-xs text-[var(--text-tertiary)]'>
           {attachment.mimeType}
         </p>
       </div>
@@ -127,7 +127,7 @@ export const MessageBubble = memo(function MessageBubble({
       }`}
     >
       {isUser ? null : (
-        <div className='mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--bg-card)] border border-[color:var(--border-default)] text-[color:var(--text-secondary)]'>
+        <div className='mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-card)] border border-[var(--border-default)] text-[var(--text-secondary)]'>
           <BotIcon className='h-4 w-4' />
         </div>
       )}
@@ -135,8 +135,8 @@ export const MessageBubble = memo(function MessageBubble({
       <div
         className={`max-w-[min(100%,48rem)] rounded-xl px-4 py-3 ${
           isUser
-            ? 'bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'
-            : 'border border-[color:var(--border-default)] bg-[color:var(--bg-card)] text-[color:var(--text-primary)]'
+            ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
+            : 'border border-[var(--border-default)] bg-[var(--bg-card)] text-[var(--text-primary)]'
         }`}
       >
         {hasAttachments ? (

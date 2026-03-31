@@ -42,19 +42,19 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--surface-overlay)] backdrop-blur-sm animate-fade-in'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-[var(--surface-overlay)] backdrop-blur-sm animate-fade-in'
       role='dialog'
       aria-modal='true'
       aria-labelledby='signup-title'
     >
-      <Card className='w-full max-w-[400px] border-[color:var(--border-default)] shadow-xl'>
+      <Card className='w-full max-w-[400px] border-[var(--border-default)] shadow-xl'>
         <CardHeader className='space-y-1'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-3'>
-              <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+              <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-primary)]'>
                 <span className='text-sm font-bold'>A</span>
               </div>
-              <span className='text-lg font-semibold text-[color:var(--text-primary)]'>
+              <span className='text-lg font-semibold text-[var(--text-primary)]'>
                 Aura Chat
               </span>
             </div>
@@ -63,7 +63,7 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
               size='icon'
               onClick={onClose}
               aria-label='Close signup modal'
-              className='h-8 w-8 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
+              className='h-8 w-8 text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             >
               <X className='h-4 w-4' aria-hidden='true' />
             </Button>
@@ -79,7 +79,7 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
             <div className='space-y-2'>
               <label
                 htmlFor='signup-displayname'
-                className='text-sm font-medium text-[color:var(--text-secondary)]'
+                className='text-sm font-medium text-[var(--text-secondary)]'
               >
                 Display name (optional)
               </label>
@@ -96,7 +96,7 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
             <div className='space-y-2'>
               <label
                 htmlFor='signup-email'
-                className='text-sm font-medium text-[color:var(--text-secondary)]'
+                className='text-sm font-medium text-[var(--text-secondary)]'
               >
                 Email
               </label>
@@ -116,7 +116,7 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
             <div className='space-y-2'>
               <label
                 htmlFor='signup-password'
-                className='text-sm font-medium text-[color:var(--text-secondary)]'
+                className='text-sm font-medium text-[var(--text-secondary)]'
               >
                 Password
               </label>
@@ -146,12 +146,12 @@ export function SignupModal({ onClose, onSwitchToLogin }: Props) {
           </form>
 
           <div className='mt-6 text-center'>
-            <p className='text-sm text-[color:var(--text-secondary)]'>
+            <p className='text-sm text-[var(--text-secondary)]'>
               Already have an account?{' '}
               <button
                 type='button'
                 onClick={onSwitchToLogin}
-                className='font-medium text-[color:var(--text-primary)] hover:underline'
+                className='font-medium text-[var(--text-primary)] hover:underline'
               >
                 Sign in
               </button>

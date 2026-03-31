@@ -39,7 +39,7 @@ export function UserMenu() {
       {isOpen ? (
         <div
           role='menu'
-          className='absolute right-0 top-10 w-48 rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900'
+          className='absolute right-0 bottom-full mb-1 w-48 rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900'
         >
           <div className='border-b border-neutral-100 px-4 py-2 dark:border-neutral-800'>
             <p className='text-xs text-neutral-500'>Signed in as</p>

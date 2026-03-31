@@ -24,7 +24,7 @@ const SidebarFooter = memo(function SidebarFooter({
   const footerContent = useMemo(() => {
     if (isLoading) {
       return (
-        <div className='h-14 animate-pulse rounded-xl bg-[color:var(--bg-hover)]' />
+        <div className='h-14 animate-pulse rounded-xl bg-[#1f1f24]' />
       )
     }
 
@@ -32,10 +32,10 @@ const SidebarFooter = memo(function SidebarFooter({
       return (
         <div className='flex items-center justify-between gap-3'>
           <div className='min-w-0'>
-            <p className='truncate font-medium text-sm text-[color:var(--text-primary)]'>
+            <p className='truncate font-medium text-sm text-[#f2f2f7]'>
               {user.displayName ?? user.email ?? 'Signed in'}
             </p>
-            <p className='truncate text-xs text-[color:var(--text-secondary)]'>
+            <p className='truncate text-xs text-[#a1a1aa]'>
               {user.email}
             </p>
           </div>
@@ -46,12 +46,12 @@ const SidebarFooter = memo(function SidebarFooter({
 
     return (
       <div className='space-y-3'>
-        <p className='text-sm text-[color:var(--text-secondary)]'>
+        <p className='text-sm text-[#a1a1aa]'>
           Sign in to save chats, attachments, and history.
         </p>
         <Link
           href='/'
-          className='inline-flex rounded-lg border border-[color:var(--border-default)] px-3 py-2 text-sm font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--bg-hover)]'
+          className='inline-flex rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-[#f2f2f7] transition hover:bg-[#1f1f24]'
         >
           Open home
         </Link>
@@ -60,7 +60,7 @@ const SidebarFooter = memo(function SidebarFooter({
   }, [isLoading, user])
 
   return (
-    <div className='mt-4 rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] p-3'>
+    <div className='mt-4 rounded-xl border border-white/10 bg-[#1a1a1e] p-3'>
       {footerContent}
     </div>
   )
@@ -75,13 +75,13 @@ const SidebarPanel = memo(function SidebarPanel({
   const { user, isLoading } = useAuth()
 
   return (
-    <div className='flex h-full flex-col border-r border-[color:var(--border-default)] bg-[color:var(--bg-secondary)] px-4 py-4'>
+    <div className='flex h-full flex-col border-r border-white/10 bg-[#0d0d0d] px-4 py-4'>
       <div className='mb-4 flex items-center gap-3 px-2'>
-        <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+        <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[#f2f2f7] text-[#0d0d0f]'>
           <span className='text-sm font-bold'>A</span>
         </div>
         <div>
-          <p className='font-semibold text-[color:var(--text-primary)]'>
+          <p className='font-semibold text-[#f2f2f7]'>
             Aura Chat
           </p>
         </div>

@@ -44,8 +44,8 @@ const FeatureCard = memo(function FeatureCard({
   text: string
 }) {
   return (
-    <div className='flex items-center gap-3 rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] px-4 py-3 text-sm text-[color:var(--text-primary)]'>
-      <Icon className='h-4 w-4 text-[color:var(--text-secondary)]' />
+    <div className='flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] px-4 py-3 text-sm text-[var(--text-primary)]'>
+      <Icon className='h-4 w-4 text-[var(--text-secondary)]' />
       {text}
     </div>
   )
@@ -81,22 +81,22 @@ export default function Home() {
   }, [user])
 
   return (
-    <div className='relative flex min-h-screen flex-col bg-[color:var(--bg-primary)]'>
+    <div className='relative flex min-h-screen flex-col bg-[var(--bg-primary)]'>
       {/* Header */}
-      <header className='border-b border-[color:var(--border-default)] bg-[color:var(--bg-secondary)] px-4 py-3'>
+      <header className='border-b border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-3'>
         <div className='mx-auto flex max-w-5xl items-center justify-between'>
           <div className='flex items-center gap-3'>
-            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--text-primary)] text-[color:var(--bg-primary)]'>
+            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-primary)]'>
               <span className='text-sm font-bold'>A</span>
             </div>
-            <span className='text-lg font-semibold text-[color:var(--text-primary)]'>
+            <span className='text-lg font-semibold text-[var(--text-primary)]'>
               Aura Chat
             </span>
           </div>
 
           <div className='flex items-center gap-2'>
             {isLoading ? (
-              <div className='h-10 w-24 animate-pulse rounded-lg bg-[color:var(--bg-hover)]' />
+              <div className='h-10 w-24 animate-pulse rounded-lg bg-[var(--bg-hover)]' />
             ) : user ? (
               <Link href='/chats'>
                 <Button>Open chats</Button>
@@ -118,19 +118,19 @@ export default function Home() {
         <div className='mx-auto max-w-5xl'>
           <div className='grid gap-12 lg:grid-cols-[1.1fr,0.9fr] lg:items-center'>
             <section className='text-center lg:text-left'>
-              <div className='inline-flex items-center gap-2 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-card)] px-4 py-2 text-sm text-[color:var(--text-secondary)]'>
-                <Sparkles className='h-4 w-4 text-[color:var(--text-primary)]' />
+              <div className='inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--bg-card)] px-4 py-2 text-sm text-[var(--text-secondary)]'>
+                <Sparkles className='h-4 w-4 text-[var(--text-primary)]' />
                 AI-powered conversations
               </div>
 
-              <h1 className='mt-6 text-4xl font-semibold leading-tight text-[color:var(--text-primary)] lg:text-5xl'>
+              <h1 className='mt-6 text-4xl font-semibold leading-tight text-[var(--text-primary)] lg:text-5xl'>
                 Chat smarter with <br />
                 <span className='text-gradient'>Aura Chat</span>
               </h1>
 
-              <p className='mt-4 max-w-xl text-lg text-[color:var(--text-secondary)]'>
+              <p className='mt-4 max-w-xl text-lg text-[var(--text-secondary)]'>
                 A clean, modern chat interface for your AI conversations.
-                Support for images, documents, and streaming responses.
+                Support for images, documents, and streaming responses…
               </p>
 
               <div className='mt-8 flex flex-wrap justify-center gap-3 lg:justify-start'>
@@ -151,8 +151,8 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className='border-t border-[color:var(--border-default)] bg-[color:var(--bg-secondary)] px-4 py-6'>
-        <div className='mx-auto max-w-5xl text-center text-sm text-[color:var(--text-tertiary)]'>
+      <footer className='border-t border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-6'>
+        <div className='mx-auto max-w-5xl text-center text-sm text-[var(--text-tertiary)]'>
           Built with Next.js, Tailwind CSS, and AI
         </div>
       </footer>
@@ -178,34 +178,34 @@ export default function Home() {
 const PreviewCard = memo(function PreviewCard() {
   return (
     <section className='hidden lg:block'>
-      <div className='rounded-2xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] p-4'>
+      <div className='rounded-2xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4'>
         <div className='space-y-4'>
           <div className='flex items-start gap-3'>
-            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--bg-hover)] border border-[color:var(--border-default)]'>
-              <span className='text-xs font-bold text-[color:var(--text-secondary)]'>
+            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-hover)] border border-[var(--border-default)]'>
+              <span className='text-xs font-bold text-[var(--text-secondary)]'>
                 A
               </span>
             </div>
-            <div className='rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-hover)] px-4 py-3 text-sm text-[color:var(--text-primary)]'>
+            <div className='rounded-xl border border-[var(--border-default)] bg-[var(--bg-hover)] px-4 py-3 text-sm text-[var(--text-primary)]'>
               How can I help you today?
             </div>
           </div>
 
           <div className='flex items-start justify-end gap-3'>
-            <div className='rounded-xl bg-[color:var(--text-primary)] px-4 py-3 text-sm text-[color:var(--bg-primary)]'>
+            <div className='rounded-xl bg-[var(--text-primary)] px-4 py-3 text-sm text-[var(--bg-primary)]'>
               Help me write a React component
             </div>
           </div>
 
           <div className='flex items-start gap-3'>
-            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--bg-hover)] border border-[color:var(--border-default)]'>
-              <span className='text-xs font-bold text-[color:var(--text-secondary)]'>
+            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-hover)] border border-[var(--border-default)]'>
+              <span className='text-xs font-bold text-[var(--text-secondary)]'>
                 A
               </span>
             </div>
-            <div className='rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-hover)] px-4 py-3 text-sm text-[color:var(--text-primary)]'>
-              Here&apos;s a simple React component using hooks...
-              <pre className='mt-2 rounded-lg bg-[color:var(--bg-card)] p-2 text-xs'>
+            <div className='rounded-xl border border-[var(--border-default)] bg-[var(--bg-hover)] px-4 py-3 text-sm text-[var(--text-primary)]'>
+              Here&apos;s a simple React component using hooks…
+              <pre className='mt-2 rounded-lg bg-[var(--bg-card)] p-2 text-xs'>
                 {`function Counter() {
   const [count, setCount] = useState(0);
   return (

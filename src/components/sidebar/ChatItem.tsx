@@ -56,15 +56,15 @@ export function ChatItem({ chat, isActive, isDeleting, onDelete }: Props) {
       <div
         className={`relative rounded-xl border p-3 transition ${
           isActive
-            ? 'border-[color:var(--border-hover)] bg-[color:var(--bg-hover)]'
-            : 'border-transparent bg-[color:var(--bg-tertiary)] hover:border-[color:var(--border-default)] hover:bg-[color:var(--bg-hover)]'
+            ? 'border-white/10 bg-[#1f1f24]'
+            : 'border-transparent bg-[#151518] hover:border-white/10 hover:bg-[#1f1f24]'
         }`}
       >
         <Link href={`/chats/${chat.id}`} className='block pr-10'>
-          <p className='truncate font-medium text-sm text-[color:var(--text-primary)]'>
+          <p className='truncate font-medium text-sm text-[#f2f2f7]'>
             {chat.title}
           </p>
-          <p className='mt-1 text-xs text-[color:var(--text-tertiary)]'>
+          <p className='mt-1 text-xs text-[#71717a]'>
             {formatUpdatedAt(chat.updated_at)}
           </p>
         </Link>
@@ -75,7 +75,7 @@ export function ChatItem({ chat, isActive, isDeleting, onDelete }: Props) {
             void handleDelete()
           }}
           disabled={isDeleting}
-          className='absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[color:var(--text-tertiary)] opacity-0 transition hover:bg-[color:var(--bg-pressed)] hover:text-[color:var(--text-primary)] group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-40'
+          className='absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#71717a] opacity-0 transition hover:bg-[#25252a] hover:text-[#f2f2f7] group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-40'
           aria-label={`Delete ${chat.title}`}
         >
           <TrashIcon className='h-4 w-4' />

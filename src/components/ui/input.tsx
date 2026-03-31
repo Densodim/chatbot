@@ -11,14 +11,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         type={type}
         className={`
           h-12 w-full rounded-lg 
-          bg-[color:var(--bg-input)] 
-          border border-[color:var(--border-default)]
+          bg-[var(--bg-input)] 
+          border border-[var(--border-default)]
           px-4
-          text-sm text-[color:var(--text-primary)]
-          placeholder:text-[color:var(--text-tertiary)]
+          text-sm text-[var(--text-primary)]
+          placeholder:text-[var(--text-tertiary)]
           transition-all duration-200
-          hover:border-[color:var(--border-hover)]
-          focus:border-[color:var(--border-focus)]
+          hover:border-[var(--border-hover)]
+          focus:border-[var(--border-focus)]
           focus-visible:outline-none
           disabled:opacity-50
           ${className || ''}

@@ -31,7 +31,7 @@ const SuggestionButton = memo(function SuggestionButton({
       type='button'
       onClick={onClick}
       disabled={isDisabled}
-      className='rounded-xl border border-[color:var(--border-default)] bg-[color:var(--bg-card)] px-5 py-4 text-sm text-[color:var(--text-primary)] transition hover:border-[color:var(--border-hover)] hover:bg-[color:var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-60 text-left'
+      className='rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] px-5 py-4 text-sm text-[var(--text-primary)] transition hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-60 text-left'
     >
       {suggestion}
     </button>
@@ -53,13 +53,13 @@ export const EmptyChatState = memo(function EmptyChatState({
   return (
     <div className='flex flex-1 items-center justify-center px-6 py-10'>
       <div className='w-full max-w-3xl text-center'>
-        <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[color:var(--bg-card)] border border-[color:var(--border-default)] text-[color:var(--text-primary)]'>
+        <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] text-[var(--text-primary)]'>
           <SparklesIcon className='h-7 w-7' />
         </div>
-        <h2 className='mt-6 text-xl font-semibold text-[color:var(--text-primary)]'>
+        <h2 className='mt-6 text-xl font-semibold text-[var(--text-primary)]'>
           How can I help you today?
         </h2>
-        <p className='mx-auto mt-3 max-w-2xl text-[color:var(--text-secondary)]'>
+        <p className='mx-auto mt-3 max-w-2xl text-[var(--text-secondary)]'>
           Start with a message, attach screenshots or docs, and the chat will
           keep the conversation context for you.
         </p>

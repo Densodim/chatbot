@@ -14,7 +14,7 @@ function SidebarSkeleton() {
       {skeletonIds.map(id => (
         <div
           key={id}
-          className='h-16 animate-pulse rounded-2xl bg-[color:var(--color-panel)]'
+          className='h-16 animate-pulse rounded-2xl bg-[var(--bg-card)]'
         />
       ))}
     </div>
@@ -35,7 +35,7 @@ export function ChatList() {
 
   if (chats.length === 0) {
     return (
-      <div className='rounded-2xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-5 text-sm text-[color:var(--color-muted-foreground)]'>
+      <div className='rounded-2xl border border-dashed border-[var(--border-default)] bg-[var(--bg-card)] px-4 py-5 text-sm text-[var(--text-secondary)]'>
         {user
           ? 'No chats yet. Start a new conversation.'
           : 'No guest chats yet. Start a new conversation.'}

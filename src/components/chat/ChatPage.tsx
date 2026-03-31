@@ -186,12 +186,12 @@ export const ChatPage = memo(function ChatPage({ chatId }: Props) {
       <input {...dropzone.getInputProps()} />
 
       {dropzone.isDragActive ? (
-        <div className='pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-none bg-[color:var(--text-primary)]/10 backdrop-blur-[1px]'>
-          <div className='rounded-xl border border-[color:var(--text-primary)] bg-[color:var(--bg-card)] px-6 py-5 text-center shadow-xl'>
-            <p className='font-medium text-[color:var(--text-primary)]'>
+        <div className='pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-none bg-[var(--text-primary)]/10 backdrop-blur-[1px]'>
+          <div className='rounded-xl border border-[var(--text-primary)] bg-[var(--bg-card)] px-6 py-5 text-center shadow-xl'>
+            <p className='font-medium text-[var(--text-primary)]'>
               Drop files to attach them to this chat
             </p>
-            <p className='mt-1 text-sm text-[color:var(--text-secondary)]'>
+            <p className='mt-1 text-sm text-[var(--text-secondary)]'>
               Supports images, PDF, TXT, and Markdown documents.
             </p>
           </div>
